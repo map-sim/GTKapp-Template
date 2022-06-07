@@ -38,7 +38,7 @@ class BaseWindow(Gtk.Window):
         self.init_window()
 
     def on_configure(self, area, event, data=None):
-        self.draw_decorator()
+        self.draw_content()
         return True
 
     def on_draw(self, area, context):
@@ -52,6 +52,32 @@ class BaseWindow(Gtk.Window):
 
         self.surface = None
         self.show_all()
+
+    def double_buffering(func):
+        def inner(self):
+            if self.surface is not None:
+                self.surface.finish()
+            self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.width, self.height)        
+            context = cairo.Context(self.surface)
+        
+            func(self, context)
+    
+            self.surface.flush()
+            self.on_draw(self.drawing_area, context)
+            self.drawing_area.queue_draw()
+        return inner
+
+    @double_buffering
+    def draw_content(self, context):
+        ### add implementation for drawing using context
+        ### e.g.
+
+        context.set_source_rgba(0.2, 0.5, 0.8)
+        context.rectangle (0, 0, self.width, self.height)
+        context.fill()
+        context.stroke()
+
+    double_buffering = staticmethod(double_buffering)
 
     def on_press(self, widget, event):
         ### add implementation for keyboard input
@@ -78,23 +104,3 @@ class BaseWindow(Gtk.Window):
         print("click", event.button, event.x, event.y)
         return True
 
-    def draw_decorator(self):
-        if self.surface is not None:
-            self.surface.finish()
-        self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.width, self.height)        
-        context = cairo.Context(self.surface)
-        
-        self.draw_content(context)
-    
-        self.surface.flush()
-        self.on_draw(self.drawing_area, context)
-        self.drawing_area.queue_draw()
-        
-    def draw_content(self, context):
-        ### add implementation for drawing using context
-        ### e.g.
-
-        context.set_source_rgba(0.2, 0.5, 0.8)
-        context.rectangle (0, 0, self.width, self.height)
-        context.fill()
-        context.stroke()

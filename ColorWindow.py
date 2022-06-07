@@ -29,13 +29,14 @@ class ColorWindow(BaseWindow):
     def on_press(self, widget, event):
         if event.keyval == 65293:
             self.background = ColorWindow.rand_rgb()
-            self.draw_decorator()
+            self.draw_content()
             print("RETURN", self.background)
         else:
             print("key name:", Gdk.keyval_name(event.keyval))
             print("key value:", event.keyval)
         return True
 
+    @BaseWindow.double_buffering
     def draw_content(self, context):
         context.set_source_rgba(*self.background)
         context.rectangle (0, 0, self.width, self.height)
