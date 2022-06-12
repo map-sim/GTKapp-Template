@@ -60,15 +60,15 @@ class BaseWindow(Gtk.Window):
             self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.width, self.height)        
             context = cairo.Context(self.surface)
         
-            func(self, context)
-    
+            func(self, context)    
+
             self.surface.flush()
             self.on_draw(self.drawing_area, context)
             self.drawing_area.queue_draw()
         return inner
 
     @double_buffering
-    def draw_content(self, context):
+    def draw_content(self, context=None):
         ### add implementation for drawing using context
         ### e.g.
 

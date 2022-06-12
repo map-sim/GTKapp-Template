@@ -37,7 +37,7 @@ class ColorWindow(BaseWindow):
         return True
 
     @BaseWindow.double_buffering
-    def draw_content(self, context):
+    def draw_content(self, context=None):
         context.set_source_rgba(*self.background)
         context.rectangle (0, 0, self.width, self.height)
         context.fill()
