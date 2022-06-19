@@ -17,10 +17,31 @@ class NaviPainter:
         self.library = library
         self.config = config
 
-    def draw(self, context):
-        for fig, ter, *params in self.config["battle-field"]["terrains"]:
-            print(fig, ter, params)
+    def draw_base(self, context, terrain):
+        width, height = self.config["window-size"]
+        color = self.library["terrains"][terrain]["color"]
+        context.set_source_rgba(*color)
+        context.rectangle(0, 0, width, height)
+        context.fill()
 
+    def draw_rect(self, context, terrain, params):
+        zoom = self.config["window-zoom"]
+        xoffset, yoffset = self.config["window-offset"]
+        color = self.library["terrains"][terrain]["color"]
+        context.set_source_rgba(*color)
+        xloc, yloc, wbox, hbox = params
+        xloc, yloc = xloc*zoom, yloc*zoom
+        xloc, yloc = xloc + xoffset, yloc + yoffset
+        context.rectangle(xloc, yloc, wbox*zoom, hbox*zoom)
+        context.fill()
+
+    def draw(self, context):
+        for shape, ter, *params in self.config["battle-field"]["terrains"]:
+            color = self.library["terrains"][ter]["color"]
+            if shape == "base": self.draw_base(context, ter)
+            elif shape == "rect": self.draw_rect(context, ter, params)
+            elif shape == "ribb": self.draw_ribb(context, ter, params)
+            else: raise ValueError(f"Not supported shape: {shape}")
         
 class NaviWindow(BaseWindow):    
     def __init__(self, config=None, library=None):
@@ -45,19 +66,50 @@ class NaviWindow(BaseWindow):
         self.show_all()
 
     def on_press(self, widget, event):
-        if event.keyval == 65293:
+        key_name = Gdk.keyval_name(event.keyval)
+        if key_name == "Return":
+            print("##> move center & redraw")
+            self.config["window-offset"] = 0, 0
             self.draw_content()
-            print("RETURN", self.background)
+        elif key_name == "Up":
+            print("##> move up & redraw")
+            hop = self.config["move-sensitive"]
+            xoffset, yoffset = self.config["window-offset"]
+            self.config["window-offset"] = xoffset, yoffset + hop
+            self.draw_content()
+        elif key_name == "Down":
+            print("##> move down & redraw")
+            hop = self.config["move-sensitive"]
+            xoffset, yoffset = self.config["window-offset"]
+            self.config["window-offset"] = xoffset, yoffset - hop
+            self.draw_content()
+        elif key_name == "Left":
+            print("##> move left & redraw")
+            hop = self.config["move-sensitive"]
+            xoffset, yoffset = self.config["window-offset"]
+            self.config["window-offset"] = xoffset + hop, yoffset
+            self.draw_content()
+        elif key_name == "Right":
+            print("##> move right & redraw")
+            hop = self.config["move-sensitive"]
+            xoffset, yoffset = self.config["window-offset"]
+            self.config["window-offset"] = xoffset - hop, yoffset
+            self.draw_content()
+        elif key_name == "minus":
+            print("##> zoom out & redraw")
+            self.config["window-zoom"] *= 0.75
+            self.draw_content()
+        elif key_name == "plus":
+            print("##> zoom in & redraw")
+            self.config["window-zoom"] *= 1.25
+            self.draw_content()
         else:
-            print("key name:", Gdk.keyval_name(event.keyval))
-            print("key value:", event.keyval)
+            print("not supported key:")
+            print("\tkey name:", Gdk.keyval_name(event.keyval))
+            print("\tkey value:", event.keyval)
         return True
 
     @BaseWindow.double_buffering
     def draw_content(self, context):
-        # context.set_source_rgba(*self.background)
-        # context.rectangle (0, 0, self.width, self.height)
-        # context.fill()
-
         self.painter.draw(context)
         context.stroke()
