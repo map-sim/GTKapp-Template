@@ -95,11 +95,11 @@ class NaviWindow(BaseWindow):
             xoffset, yoffset = self.config["window-offset"]
             self.config["window-offset"] = xoffset - hop, yoffset
             self.draw_content()
-        elif key_name == "minus":
+        elif key_name in ("minus", "KP_Subtract"):
             print("##> zoom out & redraw")
             self.config["window-zoom"] *= 0.75
             self.draw_content()
-        elif key_name == "plus":
+        elif key_name in ("plus", "KP_Add"):
             print("##> zoom in & redraw")
             self.config["window-zoom"] *= 1.25
             self.draw_content()
