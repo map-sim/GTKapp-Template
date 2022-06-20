@@ -60,6 +60,13 @@ example_library = {
             "size": (100, 100),
             "construction": 100,
             "cover-level": 1,
+        },
+        "fortress-0": {
+            "desc": "small fortress",
+            "color": (0.2, 0.2, 0.2),
+            "size": (100, 100),
+            "construction": 200,
+            "cover-level": 1,
         }
     },
 }
@@ -77,6 +84,10 @@ example_config = {
             ("building-0", 1650, 1025),
             ("building-0", 450, 1000),
             ("building-0", 550, 1000),
+            ("fortress-0", 50, 725),
+            ("fortress-0", 150, 675),
+            ("fortress-0", 1450, 660),
+            ("fortress-0", 1400, 1460),
         ],
         "terrains": [
             ("base", "steppe-0"),

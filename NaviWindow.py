@@ -54,14 +54,36 @@ class NaviPainter:
         context.rectangle(xloc, yloc+(hbox-5)*zoom, wbox*zoom, 5*zoom)
         context.rectangle(xloc, yloc, 5*zoom, hbox*zoom)
         context.rectangle(xloc+(wbox-5)*zoom, yloc, 5*zoom, hbox*zoom)
-
         context.rectangle(xloc+10*zoom, yloc+10*zoom, 25*zoom, 25*zoom)
         context.rectangle(xloc+50*zoom, yloc+20*zoom, 20*zoom, 20*zoom)
         context.rectangle(xloc+40*zoom, yloc+50*zoom, 20*zoom, 20*zoom)
         context.rectangle(xloc+10*zoom, yloc+60*zoom, 25*zoom, 25*zoom)
         context.rectangle(xloc+65*zoom, yloc+70*zoom, 20*zoom, 20*zoom)
-
         context.fill()
+        
+    def draw_fortress_0(self, context, params):
+        color = self.library["infrastructure"]["building-0"]["color"]
+        context.set_source_rgba(*color)
+        wbox, hbox = self.library["infrastructure"]["building-0"]["size"]
+        xoffset, yoffset = self.config["window-offset"]
+        zoom = self.config["window-zoom"]
+        wbox, hbox = wbox*zoom, hbox*zoom
+        xloc, yloc = params
+        xloc, yloc = xloc*zoom, yloc*zoom
+        xloc, yloc = xloc + xoffset, yloc + yoffset
+        sq = 10*zoom
+        context.rectangle(xloc, yloc, sq, sq)
+        context.rectangle(xloc + wbox - sq, yloc, sq, sq)
+        context.rectangle(xloc, yloc + hbox - sq, sq, sq)
+        context.rectangle(xloc + wbox - sq, yloc + hbox - sq, sq, sq)
+        context.rectangle(xloc + (wbox - sq) / 3, yloc + hbox - sq, sq, sq)
+        context.rectangle(xloc + 2 * (wbox - sq) / 3, yloc + hbox - sq, sq, sq)
+        context.rectangle(xloc + (wbox - sq), yloc + (hbox - sq) / 3, sq, sq)
+        context.rectangle(xloc + (wbox - sq), yloc + 2 * (hbox - sq) / 3, sq, sq)
+        context.rectangle(xloc + (wbox - sq) / 3, yloc, sq, sq)
+        context.rectangle(xloc + 2 * (wbox - sq) / 3, yloc, sq, sq)
+        context.rectangle(xloc, yloc + (hbox - sq) / 3, sq, sq)
+        context.rectangle(xloc, yloc + 2 * (hbox - sq) / 3, sq, sq)
         
     def draw(self, context):
         for shape, ter, *params in self.config["battle-field"]["terrains"]:
@@ -73,6 +95,7 @@ class NaviPainter:
             else: raise ValueError(f"Not supported shape: {shape}")
         for shape, *params in self.config["battle-field"]["infrastructure"]:
             if shape == "building-0": self.draw_building_0(context, params)
+            elif shape == "fortress-0": self.draw_fortress_0(context, params)
             else: raise ValueError(f"Not supported shape: {shape}")
 
             
