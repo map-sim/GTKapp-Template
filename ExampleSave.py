@@ -1,5 +1,69 @@
 #!/usr/bin/python3
 
+
+example_library = {
+    "terrains": {
+        "steppe-0": {
+            "desc": "flat steppe",
+            "color": (1, 0.95, 0.8),
+            "cover-level": 0,
+            "water-level": 0,
+            "land-level": 0
+        },
+        "highland-1": {
+            "desc": "flat highland",
+            "color": (1, 0.9, 0.75),
+            "cover-level": 0,
+            "water-level": 0,
+            "land-level": 1
+        },
+        "highland-2": {
+            "desc": "flat highland",
+            "color": (1, 0.85, 0.7),
+            "cover-level": 0,
+            "water-level": 0,
+            "land-level": 2
+        },
+        "forest-0": {
+            "desc": "flat forest",
+            "color": (0.6, 0.8, 0.65),
+            "cover-level": 2,
+            "water-level": 0,
+            "land-level": 0
+        },
+        "forest-1": {
+            "desc": "flat forest",
+            "color": (0.65, 0.85, 0.7),
+            "cover-level": 1,
+            "water-level": 0,
+            "land-level": 1
+        },
+        "forest-2": {
+            "desc": "flat forest",
+            "color": (0.65, 0.9, 0.7),
+            "cover-level": 2,
+            "water-level": 0,
+            "land-level": 1
+        },
+        "water-0": {
+            "desc": "shallow water",
+            "color": (0.5, 0.85, 1.0),
+            "cover-level": 0,
+            "water-level": 1,
+            "land-level": 0           
+        }
+    },
+    "infrastructure": {
+        "building-0": {
+            "desc": "small building",
+            "color": (0.2, 0.2, 0.2),
+            "size": (100, 100),
+            "construction": 100,
+            "cover-level": 1,
+        }
+    },
+}
+
 example_config = {
     "window-title": "navi window",
     "window-size": (1600, 1000),
@@ -7,38 +71,56 @@ example_config = {
     "window-zoom": 0.5,
     "move-sensitive": 50,
     "battle-field": {
+        "infrastructure": [
+            ("building-0", 1600, 925),
+            ("building-0", 1550, 1025),
+            ("building-0", 1650, 1025),
+            ("building-0", 450, 1000),
+            ("building-0", 550, 1000),
+        ],
         "terrains": [
             ("base", "steppe-0"),
-            ("rect", "forest-0", -1100, -90, 150, 230),
-            ("rect", "forest-0", -1000, -150, 150, 350),
-            ("rect", "forest-0", -850, -100, 350, 250),
-            ("rect", "forest-0", -550, -125, 350, 250),
-            ("rect", "forest-0", -300, -70, 150, 250),
-            ("rect", "forest-0", -150, -100, 100, 260),
-            ("rect", "forest-0", -100, -60, 200, 460),
-            ("rect", "forest-0", 100, -100, 100, 500),
-            ("rect", "forest-0", 200, -150, 100, 820),
-            ("rect", "forest-0", 300, -200, 100, 880),
-            ("rect", "forest-0", 400, -150, 100, 750),
-            ("rect", "forest-0", 500, -100, 100, 760),
-            ("rect", "forest-0", 600, -50, 100, 830),
-            ("rect", "forest-0", 700, 0, 150, 850),
-            ("rect", "forest-0", 830, 100, 100, 580),
-            ("rect", "forest-0", 900, 200, 100, 380),
+            ("rect", "forest-0", -1400, 420, 155, 180),
+            ("rect", "forest-0", -1300, 320, 155, 200),
+            ("rect", "forest-0", -1300, 20, 155, 180),
+            ("rect", "forest-0", -1200, -120, 155, 580),
+            ("rect", "forest-0", -1100, -90, 155, 430),
+            ("rect", "forest-0", -1000, -150, 155, 450),
+            ("rect", "forest-0", -850, -100, 355, 300),
+            ("rect", "forest-0", -550, -125, 355, 250),
+            ("rect", "forest-0", -300, -70, 155, 250),
+            ("rect", "forest-0", -150, -100, 105, 260),
+            ("rect", "forest-0", -100, -60, 205, 460),
+            ("rect", "forest-0", 100, -100, 105, 500),
+            ("rect", "forest-0", 200, -150, 105, 820),
+            ("rect", "forest-0", 300, -200, 105, 880),
+            ("rect", "forest-0", 400, -150, 105, 750),
+            ("rect", "forest-0", 500, -100, 105, 760),
+            ("rect", "forest-0", 600, -50, 105, 830),
+            ("rect", "forest-0", 700, 0, 155, 850),
+            ("rect", "forest-0", 830, 100, 105, 580),
+            ("rect", "forest-0", 900, 200, 105, 380),
 
-            ("rect", "forest-0", 500, 1500, 100, 300),
-            ("rect", "forest-0", 600, 1400, 100, 500),
-            ("rect", "forest-0", 700, 1300, 150, 500),
-            ("rect", "forest-0", 850, 1400, 100, 300),
+            ("rect", "forest-0", 400, 1600, 100, 300),
+            ("rect", "forest-0", 500, 1500, 100, 500),
+            ("rect", "forest-0", 600, 1400, 100, 700),
+            ("rect", "forest-0", 700, 1300, 150, 700),
+            ("rect", "forest-0", 850, 1400, 100, 500),
+            ("rect", "forest-0", 950, 1500, 100, 300),
 
+            ("xrect", "forest-0", -2100, 550, 220, 200, 4, -50, 35),
+            ("xrect", "forest-0", -2200, 725, 170, 200, 3, -50, 25),
+            ("xrect", "forest-0", -2350, 650, 220, 200, 3, -50, 35),
+            ("xrect", "forest-0", -2450, 750, 420, 200, 3, -200, 45),
+            ("xrect", "forest-0", -2500, 850, 420, 200, 5, -150, 45),
 
             
-            ("rect", "highland-0", -200, 250, 200, 100),
-            ("rect", "highland-0", -300, 350, 100, 200),
-            ("rect", "highland-0", -250, 300, 300, 400),
-            ("rect", "highland-0", -100, 400, 300, 450),
-            ("rect", "highland-0", -50, 450, 300, 450),
-            ("rect", "highland-0", 200, 650, 100, 150),
+            ("rect", "highland-2", -200, 250, 200, 100),
+            ("rect", "highland-2", -300, 350, 100, 200),
+            ("rect", "highland-2", -250, 300, 300, 400),
+            ("rect", "highland-2", -100, 400, 300, 450),
+            ("rect", "highland-2", -50, 450, 300, 450),
+            ("rect", "highland-2", 200, 650, 100, 150),
 
             ("rect", "highland-1", -500, 270, 250, 100),
             ("rect", "highland-1", -550, 370, 250, 200),
@@ -49,17 +131,18 @@ example_config = {
             ("rect", "highland-1", -250, 900, 350, 150),
             ("rect", "highland-1", -50, 900, 200, 50),
 
-            ("rect", "forest-1", -200, 325, 150, 100),
-            ("rect", "forest-1", -150, 350, 150, 100),
+            ("rect", "forest-2", -200, 325, 160, 150),
+            ("rect", "forest-2", -150, 350, 150, 100),
+            ("rect", "forest-2", -235, 400, 125, 100),
 
-            ("rect", "highland-0", 100, -650, 101, 220),
-            ("rect", "highland-0", 200, -700, 101, 400),
-            ("rect", "highland-0", 300, -650, 101, 450),
-            ("rect", "highland-0", 400, -600, 101, 450),
-            ("rect", "highland-0", 500, -650, 101, 550),
-            ("rect", "highland-0", 600, -700, 101, 550),
-            ("rect", "highland-0", 700, -600, 101, 300),
-            ("rect", "highland-0", 800, -550, 101, 200),
+            ("rect", "highland-2", 100, -650, 101, 220),
+            ("rect", "highland-2", 200, -700, 101, 400),
+            ("rect", "highland-2", 300, -650, 101, 450),
+            ("rect", "highland-2", 400, -600, 101, 450),
+            ("rect", "highland-2", 500, -650, 101, 550),
+            ("rect", "highland-2", 600, -700, 101, 550),
+            ("rect", "highland-2", 700, -600, 101, 300),
+            ("rect", "highland-2", 800, -550, 101, 200),
 
             ("rect", "highland-1", -100, -700, 101, 160),
             ("rect", "highland-1", 0, -750, 101, 250),
@@ -71,15 +154,88 @@ example_config = {
             ("rect", "highland-1", 900, -500, 101, 300),
             ("rect", "highland-1", 1000, -450, 101, 200),
 
-            ("rect", "forest-1", 350, -350, 150, 100),
-            ("rect", "forest-1", 450, -325, 150, 100),
-            ("rect", "forest-1", 520, -300, 120, 100),
+            ("rect", "forest-2", 350, -350, 150, 100),
+            ("rect", "forest-2", 450, -325, 150, 100),
+            ("rect", "forest-2", 520, -300, 120, 100),
 
-            ("rect", "water-0", -12000, 225, 10200, 50),
-            ("rect", "water-0", -1900, 200, 150, 50),
-            ("rect", "water-0", -1800, 175, 150, 50),
-            ("rect", "water-0", -1700, 150, 150, 50),
-            ("rect", "water-0", -1600, 125, 150, 50),
+            ("rect", "highland-1", 1400, 170, 550, 650),
+            ("rect", "highland-1", 1300, 170, 750, 430),
+            ("rect", "highland-1", 1500, 70, 350, 950),
+            ("rect", "highland-1", 1200, 220, 350, 330),
+            ("rect", "highland-1", 1250, 20, 350, 330),
+            ("rect", "highland-1", 1300, -50, 250, 330),
+
+            ("rect", "forest-1", 1350, 0, 150, 180),
+            ("rect", "forest-1", 1300, 75, 200, 320),
+            ("rect", "forest-1", 1350, 220, 100, 220),
+            ("rect", "forest-1", 1450, 180, 200, 180),
+            ("rect", "forest-1", 1450, 150, 100, 180),
+
+            ("rect", "highland-2", 1440, 360, 250, 120),
+            ("rect", "highland-2", 1510, 330, 350, 220),
+            ("rect", "highland-2", 1610, 530, 200, 100),
+            ("rect", "highland-2", 1650, 580, 120, 130),
+            ("rect", "highland-2", 1620, 220, 140, 150),
+
+
+            ("rect", "highland-1", 1400, 1370, 550, 1250),
+            ("rect", "highland-1", 1350, 1450, 550, 950),
+            ("rect", "highland-1", 1500, 1650, 550, 750),
+            ("rect", "highland-1", 1500, 1300, 150, 250),
+            ("rect", "highland-1", 1300, 1700, 150, 450),
+            ("rect", "highland-1", 1500, 2300, 350, 450),
+
+            ("rect", "forest-1", 1450, 1500, 150, 550),
+            ("rect", "forest-1", 1500, 1700, 150, 550),
+            ("rect", "forest-1", 1550, 1800, 150, 550),
+
+            
+            ("rect", "water-0", -3950, 950, 300, 100),
+            ("rect", "water-0", -4000, 1000, 140, 100),
+            ("rect", "water-0", -4050, 1050, 120, 200),
+            ("rect", "water-0", -4075, 1200, 80, 400),
+            ("xrect", "water-0", -4100, 1500, 50, 1200, 20, -25, 1000),
+
+            ("rect", "water-0", -27200, 825, 20000, 50),
+            ("rect", "water-0", -7400, 800, 550, 50),
+            ("rect", "water-0", -6950, 775, 550, 50),
+            ("rect", "water-0", -6500, 750, 550, 50),
+            ("rect", "water-0", -6050, 725, 550, 50),
+            ("rect", "water-0", -5600, 700, 500, 50),
+            ("rect", "water-0", -5400, 680, 250, 70),
+            ("rect", "water-0", -5200, 660, 250, 70),
+            ("rect", "water-0", -5000, 640, 250, 70),
+            ("rect", "water-0", -4900, 620, 150, 70),
+            ("rect", "water-0", -4800, 600, 150, 80),
+            ("rect", "water-0", -4700, 590, 150, 120),
+            ("rect", "water-0", -4600, 580, 150, 160),
+            ("rect", "water-0", -4500, 570, 150, 180),
+            ("rect", "water-0", -4400, 560, 150, 200),
+            ("rect", "water-0", -4300, 520, 150, 250),
+            ("rect", "water-0", -4200, 500, 150, 300),
+            ("rect", "water-0", -4100, 480, 150, 350),
+            ("rect", "water-0", -4000, 420, 150, 450),
+            ("rect", "water-0", -3900, 360, 350, 650),
+            ("rect", "water-0", -3660, 300, 150, 650),
+            ("rect", "water-0", -3530, 250, 150, 650),
+            ("rect", "water-0", -3400, 220, 150, 650),
+            ("rect", "water-0", -3300, 190, 150, 650),
+            ("rect", "water-0", -3200, 170, 150, 650),
+            ("rect", "water-0", -3100, 160, 150, 600),
+            ("rect", "water-0", -3000, 150, 150, 550),
+            ("rect", "water-0", -2900, 140, 150, 500),
+            ("rect", "water-0", -2800, 150, 150, 450),
+            ("rect", "water-0", -2700, 160, 150, 420),
+            ("rect", "water-0", -2600, 170, 150, 380),
+            ("rect", "water-0", -2500, 180, 150, 340),
+            ("rect", "water-0", -2400, 210, 150, 280),
+            ("rect", "water-0", -2300, 230, 150, 240),
+            ("rect", "water-0", -2200, 250, 175, 200),
+            ("rect", "water-0", -2100, 275, 175, 150),
+            ("rect", "water-0", -1980, 240, 200, 130),
+            ("rect", "water-0", -1860, 195, 170, 90),
+            ("rect", "water-0", -1740, 150, 150, 50),
+            ("rect", "water-0", -1620, 125, 150, 50),
             ("rect", "water-0", -1500, 100, 150, 50),
             ("rect", "water-0", -1400, 75, 250, 50),
             ("rect", "water-0", -1200, 50, 250, 50),
@@ -110,70 +266,18 @@ example_config = {
             ("rect", "water-0", 640, 250, 50, 150),
             ("rect", "water-0", 660, 300, 50, 150),
             ("rect", "water-0", 680, 400, 50, 150),
-            ("rect", "water-0", 700, 500, 50, 400),
-            ("rect", "water-0", 680, 860, 50, 400),
-            ("rect", "water-0", 660, 1200, 50, 400),
-            ("rect", "water-0", 680, 1550, 50, 100),
-            ("rect", "water-0", 700, 1600, 50, 100),
-            ("rect", "water-0", 720, 1650, 50, 100),
-            ("rect", "water-0", 740, 1700, 50, 100),
-            ("rect", "water-0", 760, 1750, 50, 100),
-            ("rect", "water-0", 780, 1800, 50, 100),
-            ("rect", "water-0", 800, 1850, 50, 100),
-            ("rect", "water-0", 820, 1900, 50, 150),
-            ("rect", "water-0", 840, 2000, 50, 200),
-            ("rect", "water-0", 860, 2100, 50, 200),
-            ("rect", "water-0", 880, 2200, 50, 200),
-            ("rect", "water-0", 900, 2300, 50, 10000),
-        ],
-        "infrastructure": [
+            ("rect", "water-0", 700, 500, 60, 400),
+            ("rect", "water-0", 680, 860, 60, 400),
+            ("rect", "water-0", 660, 1200, 60, 400),
+            ("xrect", "water-0", 680, 1550, 60, 100, 7, 20, 50),
+            ("rect", "water-0", 820, 1900, 60, 150),
+            ("rect", "water-0", 840, 2000, 60, 250),
+            ("rect", "water-0", 860, 2100, 60, 250),
+            ("rect", "water-0", 880, 2200, 60, 250),
+            ("xrect", "water-0", 900, 2300, 60, 200, 10, 25, 150),
+            ("xrect", "water-0", 1150, 3830, 60, 60, 12, 33, 33),
+            ("xrect", "water-0", 1550, 4200, 260, 60, 16, 210, 25),
+            ("rect", "water-0", 4900, 4600, 20000, 60),
         ]
-    }
-}
-
-example_library = {
-    "terrains": {
-        "steppe-0": {
-            "desc": "flat steppe",
-            "color": (1, 0.9, 0.85),
-            "cover-level": 0,
-            "water-level": 0,
-            "land-level": 0
-        },
-        "highland-0": {
-            "desc": "flat highland",
-            "color": (1, 0.8, 0.75),
-            "cover-level": 0,
-            "water-level": 0,
-            "land-level": 2
-        },
-        "highland-1": {
-            "desc": "flat highland",
-            "color": (1, 0.85, 0.8),
-            "cover-level": 0,
-            "water-level": 0,
-            "land-level": 1
-        },
-        "forest-0": {
-            "desc": "flat forest",
-            "color": (0.7, 0.9, 0.75),
-            "cover-level": 2,
-            "water-level": 0,
-            "land-level": 0
-        },
-        "forest-1": {
-            "desc": "flat forest",
-            "color": (0.6, 0.8, 0.7),
-            "cover-level": 1,
-            "water-level": 0,
-            "land-level": 2
-        },
-        "water-0": {
-            "desc": "shallow water",
-            "color": (0.5, 0.85, 1.0),
-            "cover-level": 0,
-            "water-level": 1,
-            "land-level": 0           
-        }
     }
 }
