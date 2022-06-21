@@ -22,8 +22,25 @@ class NaviPainter:
         color = self.library["terrains"][terrain]["color"]
         context.set_source_rgba(*color)
         context.rectangle(0, 0, width, height)
-        context.fill()
 
+    def draw_polygon(self, context, terrain, params):
+        zoom = self.config["window-zoom"]
+        xoffset, yoffset = self.config["window-offset"]
+        color = self.library["terrains"][terrain]["color"]
+        context.set_source_rgba(*color)
+
+        start_x, start_y = params[-1]
+        start_x, start_y = start_x*zoom, start_y*zoom
+        start_x, start_y = start_x + xoffset, start_y + yoffset
+        context.move_to (start_x, start_y)
+        for point in params:    
+            stop_x, stop_y = point
+            stop_x, stop_y = stop_x*zoom, stop_y*zoom
+            stop_x, stop_y = stop_x + xoffset, stop_y + yoffset
+            context.line_to (stop_x, stop_y)
+        context.fill()
+        context.stroke()
+        
     def draw_rect(self, context, terrain, params):
         zoom = self.config["window-zoom"]
         xoffset, yoffset = self.config["window-offset"]
@@ -33,7 +50,6 @@ class NaviPainter:
         xloc, yloc = xloc*zoom, yloc*zoom
         xloc, yloc = xloc + xoffset, yloc + yoffset
         context.rectangle(xloc, yloc, wbox*zoom, hbox*zoom)
-        context.fill()
 
     def draw_xrect(self, context, terrain, params):
         xloc, yloc, wbox, hbox, multi, xdelta, ydelta = params
@@ -41,36 +57,35 @@ class NaviPainter:
             rparams = xloc + index*xdelta, yloc + index*ydelta, wbox, hbox
             self.draw_rect(context, terrain, rparams)
 
-    def draw_building_0(self, context, params):
-        color = self.library["infrastructure"]["building-0"]["color"]
-        context.set_source_rgba(*color)
-        wbox, hbox = self.library["infrastructure"]["building-0"]["size"]
+    def get_infrastructure_params(self, name, xloc, yloc, *args):
+        color = self.library["infrastructure"][name]["color"]
+        wbox, hbox = self.library["infrastructure"][name]["size"]
         xoffset, yoffset = self.config["window-offset"]
         zoom = self.config["window-zoom"]
-        xloc, yloc = params
         xloc, yloc = xloc*zoom, yloc*zoom
         xloc, yloc = xloc + xoffset, yloc + yoffset
-        context.rectangle(xloc, yloc, wbox*zoom, 5*zoom)
-        context.rectangle(xloc, yloc+(hbox-5)*zoom, wbox*zoom, 5*zoom)
-        context.rectangle(xloc, yloc, 5*zoom, hbox*zoom)
-        context.rectangle(xloc+(wbox-5)*zoom, yloc, 5*zoom, hbox*zoom)
+        wbox, hbox = wbox*zoom, hbox*zoom
+        return color, zoom, xloc, yloc, wbox, hbox
+    
+    def draw_building_0(self, context, params):
+        outs = self.get_infrastructure_params("building-0", *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
+
+        context.set_source_rgba(*color)
+        context.rectangle(xloc, yloc, wbox, 5*zoom)
+        context.rectangle(xloc, yloc+hbox-5*zoom, wbox, 5*zoom)
+        context.rectangle(xloc, yloc, 5*zoom, hbox)
+        context.rectangle(xloc+wbox-5*zoom, yloc, 5*zoom, hbox)
         context.rectangle(xloc+10*zoom, yloc+10*zoom, 25*zoom, 25*zoom)
         context.rectangle(xloc+50*zoom, yloc+20*zoom, 20*zoom, 20*zoom)
         context.rectangle(xloc+40*zoom, yloc+50*zoom, 20*zoom, 20*zoom)
         context.rectangle(xloc+10*zoom, yloc+60*zoom, 25*zoom, 25*zoom)
         context.rectangle(xloc+65*zoom, yloc+70*zoom, 20*zoom, 20*zoom)
-        context.fill()
         
     def draw_fortress_0(self, context, params):
-        color = self.library["infrastructure"]["building-0"]["color"]
-        context.set_source_rgba(*color)
-        wbox, hbox = self.library["infrastructure"]["building-0"]["size"]
-        xoffset, yoffset = self.config["window-offset"]
-        zoom = self.config["window-zoom"]
-        wbox, hbox = wbox*zoom, hbox*zoom
-        xloc, yloc = params
-        xloc, yloc = xloc*zoom, yloc*zoom
-        xloc, yloc = xloc + xoffset, yloc + yoffset
+        outs = self.get_infrastructure_params("fortress-0", *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
+        
         sq = 10*zoom
         context.rectangle(xloc, yloc, sq, sq)
         context.rectangle(xloc + wbox - sq, yloc, sq, sq)
@@ -84,20 +99,61 @@ class NaviPainter:
         context.rectangle(xloc + 2 * (wbox - sq) / 3, yloc, sq, sq)
         context.rectangle(xloc, yloc + (hbox - sq) / 3, sq, sq)
         context.rectangle(xloc, yloc + 2 * (hbox - sq) / 3, sq, sq)
+
+    def draw_bridge_0(self, context, params):
+        outs = self.get_infrastructure_params("bridge-0", *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
         
+        sq = 10*zoom
+        context.rectangle(xloc, yloc, wbox, sq)
+        context.rectangle(xloc, yloc, sq, hbox)
+        context.rectangle(xloc, yloc + hbox - sq, wbox, sq)
+        context.rectangle(xloc + wbox - sq, yloc, sq, hbox)
+        context.rectangle(xloc, yloc + (hbox - sq) / 2, wbox, sq)
+        context.rectangle(xloc, yloc + (hbox - sq) / 4, wbox, sq)
+        context.rectangle(xloc, yloc + 3 * (hbox - sq) / 4, wbox, sq)
+
+    def draw_bridge_1(self, context, params):
+        outs = self.get_infrastructure_params("bridge-1", *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
+        
+        sq = 10*zoom
+        context.rectangle(xloc, yloc, wbox, sq)
+        context.rectangle(xloc, yloc, sq, hbox)
+        context.rectangle(xloc, yloc + hbox - sq, wbox, sq)
+        context.rectangle(xloc + wbox - sq, yloc, sq, hbox)
+        context.rectangle(xloc + (wbox - sq) / 2, yloc, sq, hbox)
+        context.rectangle(xloc + (wbox - sq) / 4, yloc, sq, hbox)
+        context.rectangle(xloc + 3 * (wbox - sq) / 4, yloc, sq, hbox)
+
+    def draw_route_01(self, context, params, name):
+        outs = self.get_infrastructure_params(name, *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
+
+        sq = 5*zoom
+        context.rectangle(xloc, yloc, wbox, sq)
+        context.rectangle(xloc, yloc, sq, hbox)
+        context.rectangle(xloc, yloc + hbox - sq, wbox, sq)
+        context.rectangle(xloc + wbox - sq, yloc, sq, hbox)
+
     def draw(self, context):
         for shape, ter, *params in self.config["battle-field"]["terrains"]:
             color = self.library["terrains"][ter]["color"]
             if shape == "base": self.draw_base(context, ter)
             elif shape == "rect": self.draw_rect(context, ter, params)
             elif shape == "xrect": self.draw_xrect(context, ter, params)
-            elif shape == "ribb": self.draw_ribb(context, ter, params)
+            elif shape == "polygon": self.draw_polygon(context, ter, params)
             else: raise ValueError(f"Not supported shape: {shape}")
+            context.fill()
         for shape, *params in self.config["battle-field"]["infrastructure"]:
             if shape == "building-0": self.draw_building_0(context, params)
             elif shape == "fortress-0": self.draw_fortress_0(context, params)
+            elif shape == "bridge-0": self.draw_bridge_0(context, params)
+            elif shape == "bridge-1": self.draw_bridge_1(context, params)
+            elif shape == "route-0": self.draw_route_01(context, params, shape)
+            elif shape == "route-1": self.draw_route_01(context, params, shape)
             else: raise ValueError(f"Not supported shape: {shape}")
-
+            context.fill()
             
 class NaviWindow(BaseWindow):    
     def __init__(self, config=None, library=None):
