@@ -4,6 +4,7 @@ from ExampleSave import example_config
 from ExampleSave import example_library
 from BaseWindow import BaseWindow
 import gi, cairo, random
+from math import pi, sqrt
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
@@ -22,6 +23,7 @@ class NaviPainter:
         color = self.library["terrains"][terrain]["color"]
         context.set_source_rgba(*color)
         context.rectangle(0, 0, width, height)
+        context.fill()
 
     def draw_polygon(self, context, terrain, params):
         zoom = self.config["window-zoom"]
@@ -56,6 +58,7 @@ class NaviPainter:
         for index in range(multi):
             rparams = xloc + index*xdelta, yloc + index*ydelta, wbox, hbox
             self.draw_rect(context, terrain, rparams)
+        context.fill()
 
     def get_infrastructure_params(self, name, xloc, yloc, *args):
         color = self.library["infrastructure"][name]["color"]
@@ -81,7 +84,8 @@ class NaviPainter:
         context.rectangle(xloc+40*zoom, yloc+50*zoom, 20*zoom, 20*zoom)
         context.rectangle(xloc+10*zoom, yloc+60*zoom, 25*zoom, 25*zoom)
         context.rectangle(xloc+65*zoom, yloc+70*zoom, 20*zoom, 20*zoom)
-        
+        context.fill()
+
     def draw_fortress_0(self, context, params):
         outs = self.get_infrastructure_params("fortress-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
@@ -99,6 +103,7 @@ class NaviPainter:
         context.rectangle(xloc + 2 * (wbox - sq) / 3, yloc, sq, sq)
         context.rectangle(xloc, yloc + (hbox - sq) / 3, sq, sq)
         context.rectangle(xloc, yloc + 2 * (hbox - sq) / 3, sq, sq)
+        context.fill()
 
     def draw_bridge_0(self, context, params):
         outs = self.get_infrastructure_params("bridge-0", *params)
@@ -112,6 +117,7 @@ class NaviPainter:
         context.rectangle(xloc, yloc + (hbox - sq) / 2, wbox, sq)
         context.rectangle(xloc, yloc + (hbox - sq) / 4, wbox, sq)
         context.rectangle(xloc, yloc + 3 * (hbox - sq) / 4, wbox, sq)
+        context.fill()
 
     def draw_bridge_1(self, context, params):
         outs = self.get_infrastructure_params("bridge-1", *params)
@@ -125,17 +131,70 @@ class NaviPainter:
         context.rectangle(xloc + (wbox - sq) / 2, yloc, sq, hbox)
         context.rectangle(xloc + (wbox - sq) / 4, yloc, sq, hbox)
         context.rectangle(xloc + 3 * (wbox - sq) / 4, yloc, sq, hbox)
+        context.fill()
 
-    def draw_route_01(self, context, params, name):
+    def draw_route_0(self, context, params, name):
+        outs = self.get_infrastructure_params(name, *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
+        r = wbox/2
+
+        context.set_line_width(5*zoom)
+        context.move_to (xloc+wbox/2, yloc)
+        context.line_to (xloc+wbox/2, yloc+hbox)
+        context.stroke()
+
+        context.move_to (xloc-wbox/2, yloc)
+        context.line_to (xloc-wbox/2, yloc+hbox)
+        context.stroke()
+
+        context.arc(xloc, yloc, r, 0, 2 * pi)
+        context.stroke()
+        context.arc(xloc, yloc+hbox, r, 0, 2 * pi)
+        context.stroke()
+
+    def draw_route_1(self, context, params, name):
+        outs = self.get_infrastructure_params(name, *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
+        r = hbox/2
+
+        context.set_line_width(5*zoom)
+        context.move_to (xloc,      yloc+hbox/2)
+        context.line_to (xloc+wbox, yloc+hbox/2)
+        context.stroke()
+
+        context.move_to (xloc,      yloc-hbox/2)
+        context.line_to (xloc+wbox, yloc-hbox/2)
+        context.stroke()
+
+        context.arc(xloc, yloc, r, 0, 2 * pi)
+        context.stroke()
+        context.arc(xloc+wbox, yloc, r, 0, 2 * pi)
+        context.stroke()
+
+    def draw_route_2(self, context, params, name):
         outs = self.get_infrastructure_params(name, *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
 
-        sq = 5*zoom
-        context.rectangle(xloc, yloc, wbox, sq)
-        context.rectangle(xloc, yloc, sq, hbox)
-        context.rectangle(xloc, yloc + hbox - sq, wbox, sq)
-        context.rectangle(xloc + wbox - sq, yloc, sq, hbox)
+        r = hbox/2
+        context.set_line_width(5*zoom)
 
+        d = hbox/(2*sqrt(2))
+        b = wbox/sqrt(2)
+        
+        context.move_to (xloc - d,     yloc + d)
+        context.line_to (xloc - d + b, yloc + d + b)
+        context.stroke()
+        
+        context.move_to (xloc + d,      yloc - d)
+        context.line_to (xloc + d + b, yloc - d + b)
+        context.stroke()
+        
+        context.arc(xloc, yloc, r, 0, 2 * pi)
+        context.stroke()
+        context.arc(xloc+wbox/sqrt(2), yloc+wbox/sqrt(2), r, 0, 2 * pi)
+        context.stroke()
+
+        
     def draw(self, context):
         for shape, ter, *params in self.config["battle-field"]["terrains"]:
             color = self.library["terrains"][ter]["color"]
@@ -144,16 +203,15 @@ class NaviPainter:
             elif shape == "xrect": self.draw_xrect(context, ter, params)
             elif shape == "polygon": self.draw_polygon(context, ter, params)
             else: raise ValueError(f"Not supported shape: {shape}")
-            context.fill()
         for shape, *params in self.config["battle-field"]["infrastructure"]:
             if shape == "building-0": self.draw_building_0(context, params)
             elif shape == "fortress-0": self.draw_fortress_0(context, params)
             elif shape == "bridge-0": self.draw_bridge_0(context, params)
             elif shape == "bridge-1": self.draw_bridge_1(context, params)
-            elif shape == "route-0": self.draw_route_01(context, params, shape)
-            elif shape == "route-1": self.draw_route_01(context, params, shape)
+            elif shape == "route-0": self.draw_route_0(context, params, shape)
+            elif shape == "route-1": self.draw_route_1(context, params, shape)
+            elif shape == "route-2": self.draw_route_2(context, params, shape)
             else: raise ValueError(f"Not supported shape: {shape}")
-            context.fill()
             
 class NaviWindow(BaseWindow):    
     def __init__(self, config=None, library=None):
