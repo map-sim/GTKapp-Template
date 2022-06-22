@@ -91,6 +91,7 @@ class NaviPainter:
         color, zoom, xloc, yloc, wbox, hbox = outs
         
         sq = 10*zoom
+        context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, sq, sq)
         context.rectangle(xloc + wbox - sq, yloc, sq, sq)
         context.rectangle(xloc, yloc + hbox - sq, sq, sq)
@@ -110,6 +111,7 @@ class NaviPainter:
         color, zoom, xloc, yloc, wbox, hbox = outs
         
         sq = 10*zoom
+        context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, wbox, sq)
         context.rectangle(xloc, yloc, sq, hbox)
         context.rectangle(xloc, yloc + hbox - sq, wbox, sq)
@@ -124,6 +126,7 @@ class NaviPainter:
         color, zoom, xloc, yloc, wbox, hbox = outs
         
         sq = 10*zoom
+        context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, wbox, sq)
         context.rectangle(xloc, yloc, sq, hbox)
         context.rectangle(xloc, yloc + hbox - sq, wbox, sq)
@@ -138,6 +141,7 @@ class NaviPainter:
         color, zoom, xloc, yloc, wbox, hbox = outs
         r = wbox/2
 
+        context.set_source_rgba(*color)
         context.set_line_width(5*zoom)
         context.move_to (xloc+wbox/2, yloc)
         context.line_to (xloc+wbox/2, yloc+hbox)
@@ -157,6 +161,7 @@ class NaviPainter:
         color, zoom, xloc, yloc, wbox, hbox = outs
         r = hbox/2
 
+        context.set_source_rgba(*color)
         context.set_line_width(5*zoom)
         context.move_to (xloc,      yloc+hbox/2)
         context.line_to (xloc+wbox, yloc+hbox/2)
@@ -176,11 +181,11 @@ class NaviPainter:
         color, zoom, xloc, yloc, wbox, hbox = outs
 
         r = hbox/2
-        context.set_line_width(5*zoom)
-
         d = hbox/(2*sqrt(2))
         b = wbox/sqrt(2)
-        
+        context.set_source_rgba(*color)
+        context.set_line_width(5*zoom)
+
         context.move_to (xloc - d,     yloc + d)
         context.line_to (xloc - d + b, yloc + d + b)
         context.stroke()
@@ -192,6 +197,30 @@ class NaviPainter:
         context.arc(xloc, yloc, r, 0, 2 * pi)
         context.stroke()
         context.arc(xloc+wbox/sqrt(2), yloc+wbox/sqrt(2), r, 0, 2 * pi)
+        context.stroke()
+
+    def draw_route_3(self, context, params, name):
+        outs = self.get_infrastructure_params(name, *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
+
+        r = hbox/2
+        d = hbox/(2*sqrt(2))
+        b = wbox/sqrt(2)
+
+        context.set_source_rgba(*color)
+        context.set_line_width(5*zoom)
+        
+        context.move_to (xloc - d,     yloc - d)
+        context.line_to (xloc - d - b, yloc - d + b)
+        context.stroke()
+        
+        context.move_to (xloc + d,      yloc + d)
+        context.line_to (xloc + d - b, yloc + d + b)
+        context.stroke()
+        
+        context.arc(xloc, yloc, r, 0, 2 * pi)
+        context.stroke()
+        context.arc(xloc-wbox/sqrt(2), yloc+wbox/sqrt(2), r, 0, 2 * pi)
         context.stroke()
 
         
@@ -211,6 +240,7 @@ class NaviPainter:
             elif shape == "route-0": self.draw_route_0(context, params, shape)
             elif shape == "route-1": self.draw_route_1(context, params, shape)
             elif shape == "route-2": self.draw_route_2(context, params, shape)
+            elif shape == "route-3": self.draw_route_3(context, params, shape)
             else: raise ValueError(f"Not supported shape: {shape}")
             
 class NaviWindow(BaseWindow):    
