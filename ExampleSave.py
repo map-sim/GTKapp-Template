@@ -116,6 +116,13 @@ example_library = {
             "size": (200, 28),
             "construction": 10,
             "cover-level": 0,
+        },
+        "seeport-0": {
+            "desc": "small see port",
+            "color": (0.3, 0.3, 0.3),
+            "size": (150, 150),
+            "construction": 100,
+            "cover-level": 10,
         }
     },
 }
@@ -203,6 +210,21 @@ example_config = {
             ("building-0", 240, 3680),
             ("building-0", 340, 3680),
             ("building-0", 290, 3780),
+            ("seeport-0", 3950, 1100),
+            ("seeport-0", 3950, 1250),
+            ("building-0", 3850, 1285),
+
+            ("route-1", 1770, 1050),
+            ("route-1", 1970, 1050),
+            ("route-1", 2170, 1050),
+            ("route-1", 2370, 1050),
+            ("route-1", 2570, 1050),
+            ("route-1", 2770, 1050),
+            ("route-1", 2970, 1050),
+            ("route-2", 3170, 1050),
+            ("route-2", 3310, 1190),
+            ("route-1", 3452, 1332),
+            ("route-1", 3652, 1332),
         ],
         "terrains": [
             ("base", "water-1"),
