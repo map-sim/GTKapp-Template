@@ -3,14 +3,59 @@
 from ExampleSave import example_config 
 from ExampleSave import example_library
 from BaseWindow import BaseWindow
+from math import pi, sqrt, atan2
 import gi, cairo, random
-from math import pi, sqrt
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 
 gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk
+
+
+def is_convex_polygon(polygon):
+    """
+    taken from:
+    https://stackoverflow.com/questions/471962/how-do-i-efficiently-determine-if-a-polygon-is-convex-non-convex-or-complex
+    """
+    TWO_PI = 2 * pi
+    
+    try:  # needed for any bad points or direction changes
+        # Check for too few points
+        if len(polygon) < 3:
+            return False
+        # Get starting information
+        old_x, old_y = polygon[-2]
+        new_x, new_y = polygon[-1]
+        new_direction = atan2(new_y - old_y, new_x - old_x)
+        angle_sum = 0.0
+        # Check each point (the side ending there, its angle) and accum. angles
+        for ndx, newpoint in enumerate(polygon):
+            # Update point coordinates and side directions, check side length
+            old_x, old_y, old_direction = new_x, new_y, new_direction
+            new_x, new_y = newpoint
+            new_direction = atan2(new_y - old_y, new_x - old_x)
+            if old_x == new_x and old_y == new_y:
+                return False  # repeated consecutive points
+            # Calculate & check the normalized direction-change angle
+            angle = new_direction - old_direction
+            if angle <= -pi:
+                angle += TWO_PI  # make it in half-open interval (-Pi, Pi]
+            elif angle > pi:
+                angle -= TWO_PI
+            if ndx == 0:  # if first time through loop, initialize orientation
+                if angle == 0.0:
+                    return False
+                orientation = 1.0 if angle > 0.0 else -1.0
+            else:  # if other time through loop, check orientation is stable
+                if orientation * angle <= 0.0:  # not both pos. or both neg.
+                    return False
+            # Accumulate the direction-change angle
+            angle_sum += angle
+        # Check that the total number of full turns is plus-or-minus 1
+        return abs(round(angle_sum / TWO_PI)) == 1
+    except (ArithmeticError, TypeError, ValueError):
+        return False  # any exception means not a proper convex polygon
 
 
 class NaviPainter:
@@ -29,8 +74,12 @@ class NaviPainter:
         zoom = self.config["window-zoom"]
         xoffset, yoffset = self.config["window-offset"]
         color = self.library["terrains"][terrain]["color"]
-        context.set_source_rgba(*color)
 
+        if not is_convex_polygon(params):
+            print("WARNING! Polygon is not convex!")
+            color = 1, 0, 0
+        context.set_source_rgba(*color)
+        
         start_x, start_y = params[-1]
         start_x, start_y = start_x*zoom, start_y*zoom
         start_x, start_y = start_x + xoffset, start_y + yoffset
@@ -79,11 +128,11 @@ class NaviPainter:
         context.rectangle(xloc, yloc+hbox-5*zoom, wbox, 5*zoom)
         context.rectangle(xloc, yloc, 5*zoom, hbox)
         context.rectangle(xloc+wbox-5*zoom, yloc, 5*zoom, hbox)
-        context.rectangle(xloc+10*zoom, yloc+10*zoom, 25*zoom, 25*zoom)
+        context.rectangle(xloc+15*zoom, yloc+15*zoom, 25*zoom, 25*zoom)
         context.rectangle(xloc+50*zoom, yloc+20*zoom, 20*zoom, 20*zoom)
-        context.rectangle(xloc+40*zoom, yloc+50*zoom, 20*zoom, 20*zoom)
-        context.rectangle(xloc+10*zoom, yloc+60*zoom, 25*zoom, 25*zoom)
-        context.rectangle(xloc+65*zoom, yloc+70*zoom, 20*zoom, 20*zoom)
+        context.rectangle(xloc+45*zoom, yloc+50*zoom, 15*zoom, 20*zoom)
+        context.rectangle(xloc+15*zoom, yloc+60*zoom, 25*zoom, 25*zoom)
+        context.rectangle(xloc+65*zoom, yloc+65*zoom, 20*zoom, 20*zoom)
         context.fill()
 
     def draw_seeport_0(self, context, params):
