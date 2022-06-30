@@ -412,5 +412,5 @@ class NaviWindow(BaseWindow):
             zoom = self.config["window-zoom"]
             ox = (int(event.x) - xoffset) / zoom
             oy = (int(event.y) - yoffset) / zoom
-            print(round(ox, 2), round(oy, 2))
+            print(f"({round(ox, 2)}, {round(oy, 2)}),")
         return True
