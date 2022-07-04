@@ -314,7 +314,27 @@ class NaviPainter:
             elif shape == "route-2": self.draw_route_2(context, params, shape)
             elif shape == "route-3": self.draw_route_3(context, params, shape)
             else: raise ValueError(f"Not supported shape: {shape}")
+
+
+
             
+class NaviGraph:
+    def __init__(self, config, library):
+        self.library = library
+        self.config = config
+
+    def check_terrain(self, xloc, yloc):
+        for area in self.config["battle-field"]["terrains"]:
+            pass
+        
+    def get_info(self, xwin, ywin):
+        xoffset, yoffset = self.config["window-offset"]
+        width, height = self.config["window-size"]
+        zoom = self.config["window-zoom"]
+        ox = (int(xwin) - xoffset) / zoom
+        oy = (int(ywin) - yoffset) / zoom
+        return f" -- {round(ox, 2)}  {round(oy, 2)} -- "
+        
 class NaviWindow(BaseWindow):    
     def __init__(self, config=None, library=None):
         if config is not None: self.config = config
@@ -322,7 +342,8 @@ class NaviWindow(BaseWindow):
         if library is not None: self.library = library
         else: self.library = example_library
         self.painter = NaviPainter(self.config, self.library)
-
+        self.graph = NaviGraph(self.config, self.library)
+        
         title = self.config["window-title"]
         width, height = self.config["window-size"]
         BaseWindow.__init__(self, title, width, height)
@@ -413,4 +434,7 @@ class NaviWindow(BaseWindow):
             ox = (int(event.x) - xoffset) / zoom
             oy = (int(event.y) - yoffset) / zoom
             print(f"({round(ox, 2)}, {round(oy, 2)}),")
+
+        elif event.button == 3:
+            print(self.graph.get_info(event.x, event.y))
         return True
