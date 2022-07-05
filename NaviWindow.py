@@ -3,6 +3,7 @@
 from ExampleSave import example_config 
 from ExampleSave import example_library
 from BaseWindow import BaseWindow
+from RawGraph import RawGraph
 from math import pi, sqrt, atan2
 import gi, cairo, random
 
@@ -318,23 +319,6 @@ class NaviPainter:
 
 
             
-class NaviGraph:
-    def __init__(self, config, library):
-        self.library = library
-        self.config = config
-
-    def check_terrain(self, xloc, yloc):
-        for area in self.config["battle-field"]["terrains"]:
-            pass
-        
-    def get_info(self, xwin, ywin):
-        xoffset, yoffset = self.config["window-offset"]
-        width, height = self.config["window-size"]
-        zoom = self.config["window-zoom"]
-        ox = (int(xwin) - xoffset) / zoom
-        oy = (int(ywin) - yoffset) / zoom
-        return f" -- {round(ox, 2)}  {round(oy, 2)} -- "
-        
 class NaviWindow(BaseWindow):    
     def __init__(self, config=None, library=None):
         if config is not None: self.config = config
@@ -342,7 +326,7 @@ class NaviWindow(BaseWindow):
         if library is not None: self.library = library
         else: self.library = example_library
         self.painter = NaviPainter(self.config, self.library)
-        self.graph = NaviGraph(self.config, self.library)
+        self.graph = RawGraph(self.config, self.library)
         
         title = self.config["window-title"]
         width, height = self.config["window-size"]
@@ -427,14 +411,14 @@ class NaviWindow(BaseWindow):
         return True
 
     def on_click(self, widget, event):
-        if event.button == 1:
-            xoffset, yoffset = self.config["window-offset"]
-            width, height = self.config["window-size"]
-            zoom = self.config["window-zoom"]
-            ox = (int(event.x) - xoffset) / zoom
-            oy = (int(event.y) - yoffset) / zoom
-            print(f"({round(ox, 2)}, {round(oy, 2)}),")
+        xoffset, yoffset = self.config["window-offset"]
+        width, height = self.config["window-size"]
+        zoom = self.config["window-zoom"]
+        ox = (int(event.x) - xoffset) / zoom
+        oy = (int(event.y) - yoffset) / zoom
 
+        if event.button == 1:
+            print(f"({round(ox, 2)}, {round(oy, 2)}),")
         elif event.button == 3:
-            print(self.graph.get_info(event.x, event.y))
+            print(self.graph.get_info(ox, oy))
         return True
