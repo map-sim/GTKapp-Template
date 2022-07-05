@@ -21,3 +21,6 @@ Brigade (pol. brygada) -- symbol X
 Division (pol. dywizja) -- symbol XX
   infantry: 5K-15K
   brigades: 6-12
+
+![plot](./demo-map-0.png)
+![plot](./demo-map-1.png)
