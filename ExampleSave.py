@@ -49,7 +49,7 @@ example_library = {
     "infrastructure": {
         "building-0": {
             "desc": "small building",
-            "color": (0.3, 0.3, 0.3),
+            "color": (0.9, 0.3, 0.3),
             "size": (100, 100),
             "construction": 100,
             "cover-level": 1,
@@ -66,14 +66,14 @@ example_library = {
             "color": (0.3, 0.3, 0.3),
             "size": (120, 60),
             "construction": 30,
-            "cover-level": 0,
+            "cover-level": 0.5,
         },
         "bridge-1": {
             "desc": "small bridge",
             "color": (0.3, 0.3, 0.3),
             "size": (60, 120),
             "construction": 30,
-            "cover-level": 0,
+            "cover-level": 0.5,
         },
         "route-0": {
             "desc": "small route",
@@ -108,7 +108,14 @@ example_library = {
             "color": (0.3, 0.3, 0.3),
             "size": (150, 150),
             "construction": 100,
-            "cover-level": 10,
+            "cover-level": 1,
+        },
+        "airport-0": {
+            "desc": "small air port",
+            "color": (0.3, 0.3, 0.3),
+            "size": (150, 150),
+            "construction": 100,
+            "cover-level": 0.5,
         }
     },
 }
@@ -143,7 +150,6 @@ example_config = {
 
             ("fortress-0", 1700, 2700),
             ("fortress-0", 1650, 2600),
-
             
             ("building-0", 550, 1100),
             ("building-0", 550, 1000),
@@ -236,6 +242,18 @@ example_config = {
             ("seeport-0", 3950, 1250),
             ("building-0", 3850, 1285),
 
+            ("route-1", -6728,  5384),
+            ("route-1", -6528,  5384),
+            ("bridge-0", -6328,  5354),
+            ("bridge-0", -6208,  5354),
+            ("route-1", -6088,  5384),
+            ("route-3", -5747,  5243),
+            ("route-3", -5606,  5102),
+            ("route-3", -5465,  4960),
+
+            ("route-3", -3200,  2690),
+            ("route-3", -3341,  2831),
+            
             ("route-3", -7251, 1976),
             ("route-1", -7251, 1976),
             ("route-1", -7051, 1976),

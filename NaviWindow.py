@@ -304,6 +304,7 @@ class NaviPainter:
             elif shape == "polygon": self.draw_polygon(context, ter, params)
             else: raise ValueError(f"Not supported shape: {shape}")
         for shape, *params in self.config["battle-field"]["infrastructure"]:
+            assert shape in self.library["infrastructure"]
             if shape == "building-0": self.draw_building_0(context, params)
             elif shape == "seeport-0": self.draw_seeport_0(context, params)
             elif shape == "airport-0": self.draw_airport_0(context, params)
