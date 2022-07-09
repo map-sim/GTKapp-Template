@@ -117,6 +117,8 @@ class NaviPainter:
     def draw_building_0(self, context, params):
         outs = self.get_infrastructure_params("building-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        xloc =  xloc - wbox / 2
+        yloc =  yloc - hbox / 2
 
         context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, wbox, 5*zoom)
@@ -133,6 +135,8 @@ class NaviPainter:
     def draw_seeport_0(self, context, params):
         outs = self.get_infrastructure_params("seeport-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        xloc =  xloc - wbox / 2
+        yloc =  yloc - hbox / 2
 
         context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, wbox, 5*zoom)
@@ -147,6 +151,8 @@ class NaviPainter:
     def draw_airport_0(self, context, params):
         outs = self.get_infrastructure_params("seeport-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        xloc =  xloc - wbox / 2
+        yloc =  yloc - hbox / 2
 
         context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, wbox, 5*zoom)
@@ -160,7 +166,9 @@ class NaviPainter:
     def draw_fortress_0(self, context, params):
         outs = self.get_infrastructure_params("fortress-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        
+        xloc =  xloc - wbox / 2
+        yloc =  yloc - hbox / 2
+
         sq = 10*zoom
         context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, sq, sq)
@@ -180,6 +188,8 @@ class NaviPainter:
     def draw_bridge_0(self, context, params):
         outs = self.get_infrastructure_params("bridge-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        xloc =  xloc - wbox / 2
+        yloc =  yloc - hbox / 2
         
         sq = 10*zoom
         context.set_source_rgba(*color)
@@ -195,7 +205,9 @@ class NaviPainter:
     def draw_bridge_1(self, context, params):
         outs = self.get_infrastructure_params("bridge-1", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        
+        xloc =  xloc - wbox / 2
+        yloc =  yloc - hbox / 2
+
         sq = 10*zoom
         context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, wbox, sq)
@@ -210,6 +222,7 @@ class NaviPainter:
     def draw_route_0(self, context, params, name):
         outs = self.get_infrastructure_params(name, *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        yloc =  yloc - hbox / 2
         r = wbox/2
 
         context.set_source_rgba(*color)
@@ -230,6 +243,7 @@ class NaviPainter:
     def draw_route_1(self, context, params, name):
         outs = self.get_infrastructure_params(name, *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        xloc =  xloc - wbox / 2
         r = hbox/2
 
         context.set_source_rgba(*color)
@@ -254,20 +268,21 @@ class NaviPainter:
         r = hbox/2
         d = hbox/(2*sqrt(2))
         b = wbox/sqrt(2)
+
         context.set_source_rgba(*color)
         context.set_line_width(5*zoom)
+         
+        context.move_to (xloc - d - b/2, yloc + d - b/2)
+        context.line_to (xloc - d + b/2, yloc + d + b/2)
+        context.stroke()
+        
+        context.move_to (xloc + d - b/2, yloc - d - b/2)
+        context.line_to (xloc + d + b/2, yloc - d + b/2)
+        context.stroke()
 
-        context.move_to (xloc - d,     yloc + d)
-        context.line_to (xloc - d + b, yloc + d + b)
+        context.arc(xloc - b/2, yloc - b/2, r, 0, 2 * pi)
         context.stroke()
-        
-        context.move_to (xloc + d,      yloc - d)
-        context.line_to (xloc + d + b, yloc - d + b)
-        context.stroke()
-        
-        context.arc(xloc, yloc, r, 0, 2 * pi)
-        context.stroke()
-        context.arc(xloc+wbox/sqrt(2), yloc+wbox/sqrt(2), r, 0, 2 * pi)
+        context.arc(xloc + b/2, yloc + b/2, r, 0, 2 * pi)
         context.stroke()
 
     def draw_route_3(self, context, params, name):
@@ -281,20 +296,19 @@ class NaviPainter:
         context.set_source_rgba(*color)
         context.set_line_width(5*zoom)
         
-        context.move_to (xloc - d,     yloc - d)
-        context.line_to (xloc - d - b, yloc - d + b)
+        context.move_to (xloc + d + b/2, yloc + d - b/2)
+        context.line_to (xloc + d - b/2, yloc + d + b/2)
         context.stroke()
         
-        context.move_to (xloc + d,      yloc + d)
-        context.line_to (xloc + d - b, yloc + d + b)
-        context.stroke()
-        
-        context.arc(xloc, yloc, r, 0, 2 * pi)
-        context.stroke()
-        context.arc(xloc-wbox/sqrt(2), yloc+wbox/sqrt(2), r, 0, 2 * pi)
+        context.move_to (xloc - d - b/2, yloc - d + b/2)
+        context.line_to (xloc - d + b/2, yloc - d - b/2)
         context.stroke()
 
-        
+        context.arc(xloc - b/2, yloc + b/2, r, 0, 2 * pi)
+        context.stroke()
+        context.arc(xloc + b/2, yloc - b/2, r, 0, 2 * pi)
+        context.stroke()
+
     def draw(self, context):
         for shape, ter, *params in self.config["battle-field"]["terrains"]:
             color = self.library["terrains"][ter]["color"]
@@ -317,6 +331,15 @@ class NaviPainter:
             elif shape == "route-3": self.draw_route_3(context, params, shape)
             else: raise ValueError(f"Not supported shape: {shape}")
 
+            xloc, yloc = params[0], params[1]
+            xoffset, yoffset = self.config["window-offset"]
+            zoom = self.config["window-zoom"]
+            xloc, yloc = xloc*zoom, yloc*zoom
+            xloc, yloc = xloc + xoffset, yloc + yoffset
+
+            # context.set_source_rgba(1,0,1)
+            # context.arc(xloc, yloc, 2, 0, 2 * pi)
+            # context.stroke()
 
 
             
@@ -381,12 +404,18 @@ class NaviWindow(BaseWindow):
             print("##> zoom in & redraw")
             self.config["window-zoom"] *= 1.25
             self.draw_content()
+        elif key_name in ("s", "S"):
+            print("##> save")
+            self.save_battlefield("save.navi")
         else:
             print("not supported key:")
             print("\tkey name:", Gdk.keyval_name(event.keyval))
             print("\tkey value:", event.keyval)
         return True
 
+    def save_battlefield(self, directory_name):
+        pass
+    
     @BaseWindow.double_buffering
     def draw_content(self, context):
         self.painter.draw(context)
