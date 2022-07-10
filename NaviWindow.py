@@ -5,7 +5,7 @@ from ExampleSave import example_library
 from BaseWindow import BaseWindow
 from RawGraph import RawGraph
 from math import pi, sqrt, atan2
-import gi, cairo, random
+import os, json, gi, cairo, random
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
@@ -340,8 +340,6 @@ class NaviPainter:
             # context.set_source_rgba(1,0,1)
             # context.arc(xloc, yloc, 2, 0, 2 * pi)
             # context.stroke()
-
-
             
 class NaviWindow(BaseWindow):    
     def __init__(self, config=None, library=None):
@@ -414,8 +412,19 @@ class NaviWindow(BaseWindow):
         return True
 
     def save_battlefield(self, directory_name):
-        pass
-    
+        if not os.path.exists(directory_name):
+            os.mkdir(directory_name)
+
+        library_string = json.dumps(self.library)
+        library_path = os.path.join(directory_name, "library.json")
+        with open(library_path, "w") as fd:
+            json.dump(library_string, fd)
+            
+        config_string = json.dumps(self.config)
+        config_path = os.path.join(directory_name, "config.json")
+        with open(config_path, "w") as fd:
+            json.dump(config_string, fd)
+
     @BaseWindow.double_buffering
     def draw_content(self, context):
         self.painter.draw(context)
