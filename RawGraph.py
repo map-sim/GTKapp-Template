@@ -1,4 +1,4 @@
-
+import math
 
 class InfraNode:
     def __init__(self, config, library):
@@ -13,8 +13,7 @@ class RawGraph:
 
         for config in self.config["battle-field"]["infrastructure"]:
             node = InfraNode(config, self.library)
-            
-        
+
     def check_in_polygon(self, xyloc, xypoints):
         (x, y), pos, neg = xyloc, 0, 0
         for index in range(len(xypoints)):
@@ -30,21 +29,29 @@ class RawGraph:
         return True
 
     def check_infra(self, xloc, yloc):
-        return "--"
+        smallest_d2, smallest_row = math.inf, None
+        for infra_type, x, y in self.config["battle-field"]["infrastructure"]:
+            d2 = (xloc-x)**2 + (yloc-y)**2
+            if d2 < smallest_d2:
+                smallest_d2 = d2
+                smallest_row = infra_type, x, y
+        return smallest_row, round(math.sqrt(smallest_d2), 1)
         
     def check_terrain(self, xloc, yloc):
-        output_terr = None
+        output_terr, output_row = None, None
         for shape, terr, *params in self.config["battle-field"]["terrains"]:
             if shape == "base":
                 output_terr = terr
+                output_row = shape, terr, params
             elif shape == "polygon":
                 if self.check_in_polygon((xloc, yloc), params):
+                    output_row = shape, terr, params
                     output_terr = terr
             else: raise ValueError(f"not supported: {shape}")
-        return output_terr
+        return output_terr, output_row
 
     def get_info(self, xloc, yloc):
         outstr = f" -- {round(xloc, 2)}  {round(yloc, 2)} --\n"
-        outstr += f"terrain: " + self.check_terrain(xloc, yloc)
-        outstr += f"\ninfra: " + self.check_infra(xloc, yloc)
+        outstr += f"terrain: " + str(self.check_terrain(xloc, yloc))
+        outstr += f"\ninfra: " + str(self.check_infra(xloc, yloc))
         return outstr
