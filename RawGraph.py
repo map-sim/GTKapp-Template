@@ -29,13 +29,15 @@ class RawGraph:
         return True
 
     def check_infra(self, xloc, yloc):
-        smallest_d2, smallest_row = math.inf, None
-        for infra_type, x, y in self.config["battle-field"]["infrastructure"]:
+        smallest_d2, smallest_row, smallest_index = math.inf, None, None
+        infra_list = self.config["battle-field"]["infrastructure"]
+        for index, (infra_type, x, y) in enumerate(infra_list):
             d2 = (xloc-x)**2 + (yloc-y)**2
             if d2 < smallest_d2:
                 smallest_d2 = d2
+                smallest_index = index
                 smallest_row = infra_type, x, y
-        return smallest_row, round(math.sqrt(smallest_d2), 1)
+        return smallest_row, round(math.sqrt(smallest_d2), 1), smallest_index
         
     def check_terrain(self, xloc, yloc):
         output_terr, output_row = None, None
@@ -50,8 +52,3 @@ class RawGraph:
             else: raise ValueError(f"not supported: {shape}")
         return output_terr, output_row
 
-    def get_info(self, xloc, yloc):
-        outstr = f" -- {round(xloc, 2)}  {round(yloc, 2)} --\n"
-        outstr += f"terrain: " + str(self.check_terrain(xloc, yloc))
-        outstr += f"\ninfra: " + str(self.check_infra(xloc, yloc))
-        return outstr

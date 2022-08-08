@@ -15,9 +15,11 @@ from gi.repository import Gdk
 
 class NaviPainter:
     def __init__(self, config, library):
+        self.pointed_infra_index = None
+        self.selection_color = 0.75, 0.1, 1
         self.library = library
         self.config = config
-
+        
     @staticmethod
     def is_convex_polygon(polygon):
         """
@@ -114,9 +116,11 @@ class NaviPainter:
         wbox, hbox = wbox*zoom, hbox*zoom
         return color, zoom, xloc, yloc, wbox, hbox
     
-    def draw_building_0(self, context, params):
+    def draw_building_0(self, context, params, index):
         outs = self.get_infrastructure_params("building-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        if index == self.pointed_infra_index:
+            color = self.selection_color
         xloc =  xloc - wbox / 2
         yloc =  yloc - hbox / 2
 
@@ -132,9 +136,11 @@ class NaviPainter:
         context.rectangle(xloc+65*zoom, yloc+65*zoom, 20*zoom, 20*zoom)
         context.fill()
 
-    def draw_seeport_0(self, context, params):
+    def draw_seeport_0(self, context, params, index):
         outs = self.get_infrastructure_params("seeport-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        if index == self.pointed_infra_index:
+            color = self.selection_color
         xloc =  xloc - wbox / 2
         yloc =  yloc - hbox / 2
 
@@ -148,9 +154,11 @@ class NaviPainter:
         context.rectangle(xloc+10*zoom, yloc + hbox - 40*zoom, 130*zoom, 30*zoom)
         context.fill()
 
-    def draw_seeport_1(self, context, params):
+    def draw_seeport_1(self, context, params, index):
         outs = self.get_infrastructure_params("seeport-1", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        if index == self.pointed_infra_index:
+            color = self.selection_color
         xloc =  xloc - wbox / 2
         yloc =  yloc - hbox / 2
 
@@ -164,9 +172,11 @@ class NaviPainter:
         context.rectangle(xloc+10*zoom, yloc + hbox - 30*zoom, 80*zoom, 20*zoom)
         context.fill()
 
-    def draw_airport_0(self, context, params):
+    def draw_airport_0(self, context, params, index):
         outs = self.get_infrastructure_params("seeport-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        if index == self.pointed_infra_index:
+            color = self.selection_color
         xloc =  xloc - wbox / 2
         yloc =  yloc - hbox / 2
 
@@ -179,9 +189,11 @@ class NaviPainter:
         context.rectangle(xloc+10*zoom, yloc+40*zoom, 130*zoom, 25*zoom)
         context.fill()
 
-    def draw_fortress_0(self, context, params):
+    def draw_fortress_0(self, context, params, index):
         outs = self.get_infrastructure_params("fortress-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        if index == self.pointed_infra_index:
+            color = self.selection_color
         xloc =  xloc - wbox / 2
         yloc =  yloc - hbox / 2
 
@@ -201,9 +213,11 @@ class NaviPainter:
         context.rectangle(xloc, yloc + 2 * (hbox - sq) / 3, sq, sq)
         context.fill()
 
-    def draw_bridge_0(self, context, params):
+    def draw_bridge_0(self, context, params, index):
         outs = self.get_infrastructure_params("bridge-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        if index == self.pointed_infra_index:
+            color = self.selection_color
         xloc =  xloc - wbox / 2
         yloc =  yloc - hbox / 2
         
@@ -218,9 +232,11 @@ class NaviPainter:
         context.rectangle(xloc, yloc + 3 * (hbox - sq) / 4, wbox, sq)
         context.fill()
 
-    def draw_bridge_1(self, context, params):
+    def draw_bridge_1(self, context, params, index):
         outs = self.get_infrastructure_params("bridge-1", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        if index == self.pointed_infra_index:
+            color = self.selection_color
         xloc =  xloc - wbox / 2
         yloc =  yloc - hbox / 2
 
@@ -235,9 +251,11 @@ class NaviPainter:
         context.rectangle(xloc + 3 * (wbox - sq) / 4, yloc, sq, hbox)
         context.fill()
 
-    def draw_route_0(self, context, params, name):
+    def draw_route_0(self, context, params, name, index):
         outs = self.get_infrastructure_params(name, *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        if index == self.pointed_infra_index:
+            color = self.selection_color
         yloc =  yloc - hbox / 2
         r = wbox/2
 
@@ -256,9 +274,11 @@ class NaviPainter:
         context.arc(xloc, yloc+hbox, r, 0, 2 * pi)
         context.stroke()
 
-    def draw_route_1(self, context, params, name):
+    def draw_route_1(self, context, params, name, index):
         outs = self.get_infrastructure_params(name, *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        if index == self.pointed_infra_index:
+            color = self.selection_color
         xloc =  xloc - wbox / 2
         r = hbox/2
 
@@ -277,9 +297,11 @@ class NaviPainter:
         context.arc(xloc+wbox, yloc, r, 0, 2 * pi)
         context.stroke()
 
-    def draw_route_2(self, context, params, name):
+    def draw_route_2(self, context, params, name, index):
         outs = self.get_infrastructure_params(name, *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        if index == self.pointed_infra_index:
+            color = self.selection_color
 
         r = hbox/2
         d = hbox/(2*sqrt(2))
@@ -301,9 +323,11 @@ class NaviPainter:
         context.arc(xloc + b/2, yloc + b/2, r, 0, 2 * pi)
         context.stroke()
 
-    def draw_route_3(self, context, params, name):
+    def draw_route_3(self, context, params, name, index):
         outs = self.get_infrastructure_params(name, *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        if index == self.pointed_infra_index:
+            color = self.selection_color
 
         r = hbox/2
         d = hbox/(2*sqrt(2))
@@ -333,19 +357,21 @@ class NaviPainter:
             elif shape == "xrect": self.draw_xrect(context, ter, params)
             elif shape == "polygon": self.draw_polygon(context, ter, params)
             else: raise ValueError(f"Not supported shape: {shape}")
-        for shape, *params in self.config["battle-field"]["infrastructure"]:
+        infra_list = self.config["battle-field"]["infrastructure"]
+        for index, (shape, *params) in enumerate(infra_list):
             assert shape in self.library["infrastructure"]
-            if shape == "building-0": self.draw_building_0(context, params)
-            elif shape == "seeport-0": self.draw_seeport_0(context, params)
-            elif shape == "seeport-1": self.draw_seeport_1(context, params)
-            elif shape == "airport-0": self.draw_airport_0(context, params)
-            elif shape == "fortress-0": self.draw_fortress_0(context, params)
-            elif shape == "bridge-0": self.draw_bridge_0(context, params)
-            elif shape == "bridge-1": self.draw_bridge_1(context, params)
-            elif shape == "route-0": self.draw_route_0(context, params, shape)
-            elif shape == "route-1": self.draw_route_1(context, params, shape)
-            elif shape == "route-2": self.draw_route_2(context, params, shape)
-            elif shape == "route-3": self.draw_route_3(context, params, shape)
+
+            if shape == "building-0": self.draw_building_0(context, params, index)
+            elif shape == "seeport-0": self.draw_seeport_0(context, params, index)
+            elif shape == "seeport-1": self.draw_seeport_1(context, params, index)
+            elif shape == "airport-0": self.draw_airport_0(context, params, index)
+            elif shape == "fortress-0": self.draw_fortress_0(context, params, index)
+            elif shape == "bridge-0": self.draw_bridge_0(context, params, index)
+            elif shape == "bridge-1": self.draw_bridge_1(context, params, index)
+            elif shape == "route-0": self.draw_route_0(context, params, shape, index)
+            elif shape == "route-1": self.draw_route_1(context, params, shape, index)
+            elif shape == "route-2": self.draw_route_2(context, params, shape, index)
+            elif shape == "route-3": self.draw_route_3(context, params, shape, index)
             else: raise ValueError(f"Not supported shape: {shape}")
 
             xloc, yloc = params[0], params[1]
@@ -353,10 +379,6 @@ class NaviPainter:
             zoom = self.config["window-zoom"]
             xloc, yloc = xloc*zoom, yloc*zoom
             xloc, yloc = xloc + xoffset, yloc + yoffset
-
-            # context.set_source_rgba(1,0,1)
-            # context.arc(xloc, yloc, 2, 0, 2 * pi)
-            # context.stroke()
             
 class NaviWindow(BaseWindow):    
     def __init__(self, config=None, library=None):
@@ -366,7 +388,7 @@ class NaviWindow(BaseWindow):
         else: self.library = example_library
         self.painter = NaviPainter(self.config, self.library)
         self.graph = RawGraph(self.config, self.library)
-        
+
         title = self.config["window-title"]
         width, height = self.config["window-size"]
         BaseWindow.__init__(self, title, width, height)
@@ -418,6 +440,10 @@ class NaviWindow(BaseWindow):
         elif key_name in ("plus", "KP_Add"):
             print("##> zoom in & redraw")
             self.config["window-zoom"] *= 1.25
+            self.draw_content()
+        elif key_name == "Escape":
+            print("##> deselect")
+            self.painter.pointed_infra_index = None            
             self.draw_content()
         elif key_name in ("s", "S"):
             print("##> save")
@@ -476,5 +502,12 @@ class NaviWindow(BaseWindow):
         if event.button == 1:
             print(f"({round(ox, 2)}, {round(oy, 2)}),")
         elif event.button == 3:
-            print(self.graph.get_info(ox, oy))
+            print(f"\n-->> {round(ox, 2)}  {round(oy, 2)} --")
+            terr = self.graph.check_terrain(ox, oy)
+            infra, distance, index = self.graph.check_infra(ox, oy)
+            self.painter.pointed_infra_index = index
+
+            print("terrain:", terr)
+            print("infra:", infra, distance)
+            self.draw_content()
         return True
