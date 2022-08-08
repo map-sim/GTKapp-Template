@@ -148,6 +148,22 @@ class NaviPainter:
         context.rectangle(xloc+10*zoom, yloc + hbox - 40*zoom, 130*zoom, 30*zoom)
         context.fill()
 
+    def draw_seeport_1(self, context, params):
+        outs = self.get_infrastructure_params("seeport-1", *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
+        xloc =  xloc - wbox / 2
+        yloc =  yloc - hbox / 2
+
+        context.set_source_rgba(*color)
+        context.rectangle(xloc, yloc, wbox, 5*zoom)
+        context.rectangle(xloc, yloc+hbox-5*zoom, wbox, 5*zoom)
+        context.rectangle(xloc, yloc, 5*zoom, hbox)
+        context.rectangle(xloc+wbox-5*zoom, yloc, 5*zoom, hbox)
+        context.rectangle(xloc+40*zoom, yloc+10*zoom, 25*zoom, 80*zoom)
+        context.rectangle(xloc+10*zoom, yloc+10*zoom, 80*zoom, 20*zoom)
+        context.rectangle(xloc+10*zoom, yloc + hbox - 30*zoom, 80*zoom, 20*zoom)
+        context.fill()
+
     def draw_airport_0(self, context, params):
         outs = self.get_infrastructure_params("seeport-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
@@ -321,6 +337,7 @@ class NaviPainter:
             assert shape in self.library["infrastructure"]
             if shape == "building-0": self.draw_building_0(context, params)
             elif shape == "seeport-0": self.draw_seeport_0(context, params)
+            elif shape == "seeport-1": self.draw_seeport_1(context, params)
             elif shape == "airport-0": self.draw_airport_0(context, params)
             elif shape == "fortress-0": self.draw_fortress_0(context, params)
             elif shape == "bridge-0": self.draw_bridge_0(context, params)
