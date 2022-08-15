@@ -21,7 +21,9 @@ elif sys.argv[1] == "navi-load":
         config = json.loads(json.load(fd))
     with open("save.navi/library.json") as fd:
         library = json.loads(json.load(fd))
-    NaviWindow(config, library)
+    with open("save.navi/battle-field.json") as fd:
+        battle_field = json.loads(json.load(fd))
+    NaviWindow(config, library, battle_field)
 else: raise ValueError(sys.argv[1])
 
 try: Gtk.main()

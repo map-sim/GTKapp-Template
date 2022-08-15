@@ -1,18 +1,11 @@
 import math
 
-class InfraNode:
-    def __init__(self, config, library):
-        self.library = library
-        self.config = config
-        
 class RawGraph:
-    def __init__(self, config, library):
+    def __init__(self, config, library, battle_field):
         self.infrastructure = list()
+        self.battle_field = battle_field
         self.library = library
         self.config = config
-
-        for config in self.config["battle-field"]["infrastructure"]:
-            node = InfraNode(config, self.library)
 
     def check_in_polygon(self, xyloc, xypoints):
         (x, y), pos, neg = xyloc, 0, 0
@@ -30,9 +23,11 @@ class RawGraph:
 
     def check_infra(self, xloc, yloc):
         smallest_d2, smallest_row, smallest_index = math.inf, None, None
-        infra_list = self.config["battle-field"]["infrastructure"]
+        infra_list = self.battle_field["infrastructure"]
+        radius2 = self.config["pointer-radius"] ** 2
         for index, (infra_type, x, y) in enumerate(infra_list):
             d2 = (xloc-x)**2 + (yloc-y)**2
+            if d2 > radius2: continue
             if d2 < smallest_d2:
                 smallest_d2 = d2
                 smallest_index = index
@@ -41,7 +36,7 @@ class RawGraph:
         
     def check_terrain(self, xloc, yloc):
         output_terr, output_row = None, None
-        for shape, terr, *params in self.config["battle-field"]["terrains"]:
+        for shape, terr, *params in self.battle_field["terrains"]:
             if shape == "base":
                 output_terr = terr
                 output_row = shape, terr, params

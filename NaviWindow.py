@@ -1,11 +1,14 @@
 #!/usr/bin/python3
 
-from ExampleSave import example_config 
-from ExampleSave import example_library
-from BaseWindow import BaseWindow
-from RawGraph import RawGraph
 from math import pi, sqrt, atan2
 import os, json, gi, cairo, random
+
+from ExampleSave import example_config 
+from ExampleSave import example_library
+from ExampleSave import example_battle_field
+
+from BaseWindow import BaseWindow
+from RawGraph import RawGraph
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
@@ -14,9 +17,10 @@ gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk
 
 class NaviPainter:
-    def __init__(self, config, library):
+    def __init__(self, config, library, battle_field):
         self.pointed_infra_index = None
         self.selection_color = 0.75, 0.1, 1
+        self.battle_field = battle_field
         self.library = library
         self.config = config
         
@@ -350,14 +354,14 @@ class NaviPainter:
         context.stroke()
 
     def draw(self, context):
-        for shape, ter, *params in self.config["battle-field"]["terrains"]:
+        for shape, ter, *params in self.battle_field["terrains"]:
             color = self.library["terrains"][ter]["color"]
             if shape == "base": self.draw_base(context, ter)
             elif shape == "rect": self.draw_rect(context, ter, params)
             elif shape == "xrect": self.draw_xrect(context, ter, params)
             elif shape == "polygon": self.draw_polygon(context, ter, params)
             else: raise ValueError(f"Not supported shape: {shape}")
-        infra_list = self.config["battle-field"]["infrastructure"]
+        infra_list = self.battle_field["infrastructure"]
         for index, (shape, *params) in enumerate(infra_list):
             assert shape in self.library["infrastructure"]
 
@@ -374,26 +378,30 @@ class NaviPainter:
             elif shape == "route-3": self.draw_route_3(context, params, shape, index)
             else: raise ValueError(f"Not supported shape: {shape}")
 
-            xloc, yloc = params[0], params[1]
-            xoffset, yoffset = self.config["window-offset"]
-            zoom = self.config["window-zoom"]
-            xloc, yloc = xloc*zoom, yloc*zoom
-            xloc, yloc = xloc + xoffset, yloc + yoffset
+            # xoffset, yoffset = self.config["window-offset"]
+            # xloc, yloc = params[0], params[1]
+            # zoom = self.config["window-zoom"]
+            # xloc, yloc = xloc*zoom, yloc*zoom
+            # xloc, yloc = xloc + xoffset, yloc + yoffset
             
 class NaviWindow(BaseWindow):    
-    def __init__(self, config=None, library=None):
-        if config is not None: self.config = config
-        else: self.config = example_config
+    def __init__(self, config=None, library=None, battle_field=None):
+        if battle_field is not None: self.battle_field = battle_field
+        else: self.battle_field = example_battle_field
         if library is not None: self.library = library
         else: self.library = example_library
-        self.painter = NaviPainter(self.config, self.library)
-        self.graph = RawGraph(self.config, self.library)
-
+        if config is not None: self.config = config
+        else: self.config = example_config
+        
+        self.painter = NaviPainter(self.config, self.library, self.battle_field)
+        self.graph = RawGraph(self.config, self.library, self.battle_field)
+        self.reference_point = (0, 0)
+        
         title = self.config["window-title"]
         width, height = self.config["window-size"]
         BaseWindow.__init__(self, title, width, height)
 
-    def assert_config_and_libraty(self):
+    def assert_config_and_library_and_battle_field(self):
         # self.library
         # self.config
         pass
@@ -448,6 +456,9 @@ class NaviWindow(BaseWindow):
         elif key_name in ("s", "S"):
             print("##> save")
             self.save_battlefield("save.navi")
+        elif key_name in ("p", "P"):
+            print("##> point")
+            self.reference_point = None
         else:
             print("not supported key:")
             print("\tkey name:", Gdk.keyval_name(event.keyval))
@@ -457,6 +468,11 @@ class NaviWindow(BaseWindow):
     def save_battlefield(self, directory_name):
         if not os.path.exists(directory_name):
             os.mkdir(directory_name)
+
+        battle_field_string = json.dumps(self.battle_field)
+        battle_field_path = os.path.join(directory_name, "battle-field.json")
+        with open(battle_field_path, "w") as fd:
+            json.dump(battle_field_string, fd)
 
         library_string = json.dumps(self.library)
         library_path = os.path.join(directory_name, "library.json")
@@ -510,4 +526,10 @@ class NaviWindow(BaseWindow):
             print("terrain:", terr)
             print("infra:", infra, distance)
             self.draw_content()
+            if self.reference_point is None:
+                self.reference_point = (ox, oy)
+            else:
+                rx, ry = self.reference_point
+                d = sqrt((rx-ox)**2 + (ry-oy)**2) / 1000
+                print(round(d, 2), "<- distance to reference (km)")
         return True
