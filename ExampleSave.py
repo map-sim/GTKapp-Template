@@ -7,42 +7,50 @@ example_library = {
             "color": (1, 0.95, 0.8),
             "cover-level": 0,
             "water-level": 0,
-            "land-level": 0
+            "land-level": 0,
+            "move": ["foot", "wheel", "track"]
         },
         "highland-1": {
             "desc": "flat highland",
             "color": (1, 0.9, 0.75),
-            "cover-level": 0,
+            "cover-level": 1,
             "water-level": 0,
-            "land-level": 1
+            "land-level": 1,
+            "move-level": 2,
+            "move": ["foot", "track"]
         },
         "highland-2": {
             "desc": "flat highland",
             "color": (1, 0.85, 0.7),
-            "cover-level": 0,
-            "water-level": 0,
-            "land-level": 2
+            "cover-level": 2,
+            "land-level": 2,
+            "water-flag": 0,
+            "move": ["foot"]
         },
         "forest-0": {
             "desc": "flat forest",
             "color": (0.7, 0.95, 0.85),
             "cover-level": 2,
-            "water-level": 0,
-            "land-level": 0
+            "land-level": 0,
+            "water-flag": 0,
+            "move": ["foot", "track"]
         },
         "water-0": {
             "desc": "shallow water",
             "color": (0.5, 0.85, 1.0),
             "cover-level": 0,
-            "water-level": 1,
-            "land-level": 0           
+            "land-level": 0,
+            "water-flag": 1,
+            "move": ["foot", "track"]
         },
         "water-1": {
-            "desc": "shallow water",
+            "desc": "navigable water",
             "color": (0.45, 0.8, 0.95),
             "cover-level": 0,
             "water-level": 2,
-            "land-level": 0           
+            "land-level": 0,
+            "move": ["ship"]
+
         }
     },
     "infrastructure": {
@@ -50,80 +58,80 @@ example_library = {
             "desc": "small building",
             "color": (0.3, 0.3, 0.3),
             "size": (100, 100),
-            "construction": 100,
+            "build-level": 4,
             "cover-level": 1,
         },
         "fortress-0": {
             "desc": "small fortress",
             "color": (0.3, 0.3, 0.3),
             "size": (100, 100),
-            "construction": 200,
+            "build-level": 6,
             "cover-level": 1,
         },
         "bridge-0": {
             "desc": "small bridge",
             "color": (0.3, 0.3, 0.3),
             "size": (120, 60),
-            "construction": 30,
+            "build-level": 2,
             "cover-level": 0.5,
         },
         "bridge-1": {
             "desc": "small bridge",
             "color": (0.3, 0.3, 0.3),
             "size": (60, 120),
-            "construction": 30,
+            "build-level": 2,
             "cover-level": 0.5,
         },
         "route-0": {
             "desc": "small route",
             "color": (0.3, 0.3, 0.3),
             "size": (28, 200),
-            "construction": 10,
+            "build-level": 1,
             "cover-level": 0,
         },
         "route-1": {
             "desc": "small route",
             "color": (0.3, 0.3, 0.3),
             "size": (200, 28),
-            "construction": 10,
+            "build-level": 1,
             "cover-level": 0,
         },
         "route-2": {
             "desc": "small route",
             "color": (0.3, 0.3, 0.3),
             "size": (200, 28),
-            "construction": 10,
+            "build-level": 1,
             "cover-level": 0,
         },
         "route-3": {
             "desc": "small route",
             "color": (0.3, 0.3, 0.3),
             "size": (200, 28),
-            "construction": 10,
+            "build-level": 1,
             "cover-level": 0,
         },
         "seeport-0": {
             "desc": "small see port",
             "color": (0.3, 0.3, 0.3),
             "size": (150, 150),
-            "construction": 150,
+            "build-level": 5,
             "cover-level": 1,
         },
         "seeport-1": {
             "desc": "tiny see port",
             "color": (0.3, 0.3, 0.3),
             "size": (100, 100),
-            "construction": 100,
+            "build-level": 3,
             "cover-level": 1,
         },
         "airport-0": {
             "desc": "air port",
             "color": (0.3, 0.3, 0.3),
             "size": (150, 150),
-            "construction": 150,
+            "build-level": 3,
             "cover-level": 0.5,
         }
-    },
+    }
 }
 
 example_config = {
@@ -571,6 +579,31 @@ example_battle_field = {
          (5771.85, 6106.84),
          (-1634.9, 5382.71),
         ),
+        ("polygon", "water-1",
+         (1725, 13804),
+         (1265, 11999),
+         (810, 10170),
+         (1405, 8342),
+         (3713, 7656),
+         (5953, 7999),
+         (6913, 10879)
+        ),
+        ("polygon", "water-1",
+         (-3224.7, 10075.68),
+         (-4718.7, 10923.49),
+         (-5949.47, 12370.11),
+         (-4726.57, 13390.2),
+         (-3449.44, 12868.11),
+         (-3180.76, 10778.52),
+        ),
+        ("polygon", "water-1",
+         (-13427.8, 1248.21),
+         (-10736.42, 1638.27),
+         (-10716.91, 2301.36),
+         (-11438.52, 3959.1),
+         (-13661.84, 6494.46),
+         (-16177.7, 4563.69),
+        ),
         ("polygon", "steppe-0",
          (-1398, 8150),
          (-1078, 8021),
@@ -602,6 +635,12 @@ example_battle_field = {
          (-8196.26, 10631.2),
          (-4872.98, 10428.37),
          (-1471.69, 6368.6),
+        ),
+        ("polygon", "steppe-0",
+         (-9061.03, -875.79),
+         (-10577.04, -339.96),
+         (-10590.11, 744.77),
+         (-9257.07, 1515.85),
         ),
         ("polygon", "steppe-0",
          (-1799.81, 10328.31),
@@ -1138,6 +1177,16 @@ example_battle_field = {
          (-6135.99, 4351.2),
          (-6188.08, 5823.74),
          (-6260.94, 5827.79),
+         ),
+        ("polygon", "water-1",
+         (-5319.12, 1158.04),
+         (-4892.15, 431.04),
+         (-4349.79, 350.27),
+         (-3818.96, 627.22),
+         (-3761.26, 1331.14),
+         (-4072.84, 2138.91),
+         (-4719.06, 2277.39),
+         (-5226.8, 1954.28)
         )
     ]
 }

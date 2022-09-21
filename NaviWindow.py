@@ -378,12 +378,6 @@ class NaviPainter:
             elif shape == "route-3": self.draw_route_3(context, params, shape, index)
             else: raise ValueError(f"Not supported shape: {shape}")
 
-            # xoffset, yoffset = self.config["window-offset"]
-            # xloc, yloc = params[0], params[1]
-            # zoom = self.config["window-zoom"]
-            # xloc, yloc = xloc*zoom, yloc*zoom
-            # xloc, yloc = xloc + xoffset, yloc + yoffset
-            
 class NaviWindow(BaseWindow):    
     def __init__(self, config=None, library=None, battle_field=None):
         if battle_field is not None: self.battle_field = battle_field
