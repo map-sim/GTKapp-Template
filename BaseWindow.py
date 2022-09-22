@@ -8,7 +8,7 @@ from gi.repository import Gtk
 gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk
 
-class BaseWindow(Gtk.Window):    
+class BaseWindow(Gtk.Window):
     def __init__(self, title, width, height):
         assert int(height) > 0, "height <= 0"
         assert int(width) > 0, "width <= 0"

@@ -23,6 +23,7 @@ example_library = {
             "radius": 0.0,
             "capacity": 0.0,
             "bandwidth": 0.5,
+            "switch": 3,
             "type": "pipe"
         },
         "nd0": {
@@ -70,6 +71,15 @@ example_library = {
             "capacity": 5.0,
             "bandwidth": 0.7,
             "type": "mixer"
+        },
+        "str0": {
+            "io": 2,
+            "cost": 3.0,
+            "cover": 0.95,
+            "radius": 1.0,
+            "capacity": 15.0,
+            "bandwidth": 0.5,
+            "type": "store"            
         },
         "src0": {
             "io": 1,
@@ -121,14 +131,106 @@ example_library = {
 }
 
 example_state = {
-    
+    "radiation": {
+        "method": "uniformly-rand",
+        "maximum": 2.0,
+        "minimum": 0.1
+    },
+    "source": {
+        "X": {
+            "maximum": 2.0,
+            "method": "additive-cones",
+            "points": [
+                (0, 1, 3.0, 10.0),
+                (7, 1, 1.5, 4.0),
+                (3, -4, 1.2, 3.0)
+            ]
+        }
+    },
+    "connections": [
+        (("in0", 2, 2), ("str0", -2, 2), {"switch": 1}),
+        (("str0", -2, 2), ("str0", -4, 4), {"switch": 2})
+    ],    
+    "elements": [
+        (("in0", 2, 2), {"X": 2.5, "Y": 5.0}),
+        (("str0", -2, 2), {"X": 1.0, "Y": 9.0}),
+        (("str0", -4, 4), {"X": 0.0, "Y": 3.0})
+    ]
 }
 
 example_setup = {
     "window-title": "demo moon",
-    "window-size": (800, 600)
+    "window-size": (1200, 800),
+    "window-offset": (500, 100),
+    "window-zoom": 12.5,
 }
 
+
+class MoonPainter:
+    background_color = 0.95, 0.95, 0.9
+    def __init__(self, setup, state):
+        self.setup = setup
+        self.state = state
+
+    def calc_render_params(self, xloc, yloc, wbox, hbox):
+        xoffset, yoffset = self.setup["window-offset"]
+        zoom = self.setup["window-zoom"]
+
+        xloc, yloc = xloc * zoom, yloc * zoom
+        xloc, yloc = xloc + xoffset, yloc + yoffset
+        wbox, hbox = wbox * zoom, hbox * zoom
+        return xloc, yloc, wbox, hbox
+
+    def draw_polygon(self, context, color, points):
+        #xoffset, yoffset = self.setup["window-offset"]
+        #zoom = self.config["window-zoom"]
+
+        context.set_source_rgba(*color)
+        
+        start_x, start_y = points[-1]
+        #start_x, start_y = start_x*zoom, start_y*zoom
+        #start_x, start_y = start_x + xoffset, start_y + yoffset
+        context.move_to (start_x, start_y)
+        for point in points:    
+            stop_x, stop_y = point
+            #stop_x, stop_y = stop_x*zoom, stop_y*zoom
+            #stop_x, stop_y = stop_x + xoffset, stop_y + yoffset
+            context.line_to (stop_x, stop_y)
+        context.fill()
+        context.stroke()
+
+    def draw_str0(self, context, xloc, yloc, state):
+        xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.5, 1.5)
+        
+        context.set_source_rgba(0, 0, 0)
+        context.rectangle(xloc-wbox/2, yloc-hbox/2, wbox, hbox)
+        context.fill()
+
+        context.set_source_rgba(*self.background_color)
+        context.rectangle(xloc-wbox/4, yloc-hbox/4, wbox/2, hbox/2)
+        context.fill()
+
+    def draw_in0(self, context, xloc, yloc, state):
+        xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.5, 1.5)
+        
+        context.set_source_rgba(0, 0, 0)
+        context.rectangle(xloc-wbox/2, yloc-hbox/2, wbox, hbox)
+        context.fill()
+
+        xo, yo = xloc, yloc + hbox/5
+        points = [(xo, yo), (xo + 2*wbox/5, yo - hbox/4),
+                  (xo, yo+hbox/4), (xo - 2*wbox/5, yo - hbox/4)]
+        self.draw_polygon(context, self.background_color, points)
+        xo, yo = xloc, yloc - 1 * hbox/5
+        points = [(xo, yo), (xo + 2*wbox/5, yo - hbox/4),
+                  (xo, yo+hbox/4), (xo - 2*wbox/5, yo - hbox/4)]
+        self.draw_polygon(context, self.background_color, points)
+
+    def draw(self, context):
+        for (element, x, y), state in self.state["elements"]:
+            if element == "str0": self.draw_str0(context, x, y, state)
+            elif element == "in0": self.draw_in0(context, x, y, state)
+            else: raise ValueError(f"Not supported shape: {element}")
 
 class MoonWindow(BaseWindow):    
     def __init__(self, setup=None, state=None, library=None):
@@ -141,5 +243,38 @@ class MoonWindow(BaseWindow):
 
         title = self.setup["window-title"]
         width, height = self.setup["window-size"]
+        self.painter = MoonPainter(self.setup, self.state)
         BaseWindow.__init__(self, title, width, height)
 
+    def on_scroll(self, widget, event):
+        xoffset, yoffset = self.setup["window-offset"]
+        width, height = self.setup["window-size"]
+        zoom = self.setup["window-zoom"]
+        ox = (event.x - xoffset) / zoom
+        oy = (event.y - yoffset) / zoom
+        
+        if event.direction == Gdk.ScrollDirection.DOWN:
+            self.setup["window-zoom"] *= 0.75
+        elif event.direction == Gdk.ScrollDirection.UP:
+            self.setup["window-zoom"] *= 1.25
+
+        zoom2 = self.setup["window-zoom"]
+        xoffset = event.x - ox * zoom2
+        yoffset = event.y - oy * zoom2
+        self.setup["window-offset"] = xoffset, yoffset
+        self.draw_content()
+        return True
+
+    def on_click(self, widget, event):
+        xoffset, yoffset = self.setup["window-offset"]
+        width, height = self.setup["window-size"]
+        zoom = self.setup["window-zoom"]
+        ox = (int(event.x) - xoffset) / zoom
+        oy = (int(event.y) - yoffset) / zoom
+        print(f"({round(ox, 2)}, {round(oy, 2)}),")
+        return True
+
+    @BaseWindow.double_buffering
+    def draw_content(self, context):
+        self.painter.draw(context)
+        context.stroke()
