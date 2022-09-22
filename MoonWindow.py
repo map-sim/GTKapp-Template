@@ -107,6 +107,7 @@ example_library = {
             "radius": 0.5,
             "capacity": 0.0,
             "bandwidth": 0.0,
+            "switch": 3,
             "type": "sensor"
         }
     },
@@ -148,31 +149,39 @@ example_state = {
         }
     },
     "connections": [
-        (("in0", 2, 2), ("str0", -2, 2), {"switch": 1}),
-        (("str0", -2, 2), ("str0", -4, 4), {"switch": 2})
+        ("pipe0", ("in0", 2, 2), ("str0", -2, 2), {"switch": 1}),
+        ("pipe0", ("str0", -2, 2), ("str0", -4, 4), {"switch": 2}),
+        ("pipe0", ("out0", 4, 5.5), ("nd0", 5, 8.5), {"switch": 0}),
+        ("pipe0", ("nd0", 0, 9.5), ("nd0", 5, 8.5), {"switch": 0})
     ],    
     "elements": [
         (("in0", 2, 2), {"X": 2.5, "Y": 5.0}),
         (("str0", -2, 2), {"X": 1.0, "Y": 9.0}),
-        (("str0", -4, 4), {"X": 0.0, "Y": 3.0})
+        (("str0", -4, 4), {"X": 0.0, "Y": 3.0}),
+        (("out0", 4, 5.5), {"X": 0.0, "Y": 1.0}),
+        (("nd0", 5, 8.5), {}),
+        (("nd0", 0, 9.5), {}),
+        (("ex0", -8, 3.5), {}),
+        (("ex0", -8, 5.5), {}),
+        (("sn0", -8, 8.5), {"switch": 0})
     ]
 }
 
 example_setup = {
     "window-title": "demo moon",
-    "window-size": (1200, 800),
+    "window-size": (1600, 1000),
     "window-offset": (500, 100),
     "window-zoom": 12.5,
 }
 
 
 class MoonPainter:
-    background_color = 0.95, 0.95, 0.9
+    background_color = 0.95, 0.95, 0.5
     def __init__(self, setup, state):
         self.setup = setup
         self.state = state
 
-    def calc_render_params(self, xloc, yloc, wbox, hbox):
+    def calc_render_params(self, xloc, yloc, wbox=0, hbox=0):
         xoffset, yoffset = self.setup["window-offset"]
         zoom = self.setup["window-zoom"]
 
@@ -182,22 +191,55 @@ class MoonPainter:
         return xloc, yloc, wbox, hbox
 
     def draw_polygon(self, context, color, points):
-        #xoffset, yoffset = self.setup["window-offset"]
-        #zoom = self.config["window-zoom"]
-
-        context.set_source_rgba(*color)
-        
+        context.set_source_rgba(*color)        
         start_x, start_y = points[-1]
-        #start_x, start_y = start_x*zoom, start_y*zoom
-        #start_x, start_y = start_x + xoffset, start_y + yoffset
         context.move_to (start_x, start_y)
         for point in points:    
             stop_x, stop_y = point
-            #stop_x, stop_y = stop_x*zoom, stop_y*zoom
-            #stop_x, stop_y = stop_x + xoffset, stop_y + yoffset
             context.line_to (stop_x, stop_y)
         context.fill()
         context.stroke()
+
+    def draw_pipe0(self, context, node1, node2, state):
+        (_, xi, yi), (_, xe, ye) =  node1, node2
+        xi, yi, width, _ = self.calc_render_params(xi, yi, 0.25)
+        xe, ye, _, _ = self.calc_render_params(xe, ye)
+        
+        context.set_source_rgba(0.66, 0.66, 0.66)
+        context.set_line_width(width)
+        context.move_to(xi, yi)
+        context.line_to(xe, ye) 
+        context.stroke()
+
+    def draw_ex0(self, context, xloc, yloc, state):
+        xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.2, 0.25)
+        xi = xloc - hbox/2
+        xe = xloc + hbox/2
+        yi = yloc + hbox/2
+        ye = yloc - hbox/2
+        context.set_line_width(wbox)
+        context.move_to(xi, yloc)
+        context.line_to(xe, yloc) 
+        context.stroke()
+        context.move_to(xloc, yi)
+        context.line_to(xloc, ye) 
+        context.stroke()
+        
+    def draw_nd0(self, context, xloc, yloc, state):
+        xloc, yloc, wbox, _ = self.calc_render_params(xloc, yloc, 0.4, 0)
+
+        context.set_source_rgba(0, 0, 0)
+        context.arc(xloc, yloc, wbox, 0, 2 * pi)
+        context.fill()
+
+    def draw_sn0(self, context, xloc, yloc, state):
+        xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.2, 1.2)
+
+        context.set_source_rgba(0, 0, 0)
+        xo, yo = xloc, yloc
+        points = [(xo-wbox/2, yo), (xo, yo-hbox/2),
+                  (xo+wbox/2, yo), (xo, yo+hbox/2)]
+        self.draw_polygon(context, (0, 0, 0), points)        
 
     def draw_str0(self, context, xloc, yloc, state):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.5, 1.5)
@@ -221,15 +263,38 @@ class MoonPainter:
         points = [(xo, yo), (xo + 2*wbox/5, yo - hbox/4),
                   (xo, yo+hbox/4), (xo - 2*wbox/5, yo - hbox/4)]
         self.draw_polygon(context, self.background_color, points)
-        xo, yo = xloc, yloc - 1 * hbox/5
+        xo, yo = xloc, yloc - hbox/5
         points = [(xo, yo), (xo + 2*wbox/5, yo - hbox/4),
                   (xo, yo+hbox/4), (xo - 2*wbox/5, yo - hbox/4)]
         self.draw_polygon(context, self.background_color, points)
 
+    def draw_out0(self, context, xloc, yloc, state):
+        xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.5, 1.5)
+        
+        context.set_source_rgba(0, 0, 0)
+        context.rectangle(xloc-wbox/2, yloc-hbox/2, wbox, hbox)
+        context.fill()
+
+        xo, yo = xloc, yloc - hbox/5
+        points = [(xo, yo), (xo + 2*wbox/5, yo + hbox/4),
+                  (xo, yo - hbox/4), (xo - 2*wbox/5, yo + hbox/4)]
+        self.draw_polygon(context, self.background_color, points)
+        xo, yo = xloc, yloc + hbox/5
+        points = [(xo, yo), (xo + 2*wbox/5, yo + hbox/4),
+                  (xo, yo - hbox/4), (xo - 2*wbox/5, yo + hbox/4)]
+        self.draw_polygon(context, self.background_color, points)
+
     def draw(self, context):
+        for pipe, n1, n2, state in self.state["connections"]:
+            if pipe == "pipe0": self.draw_pipe0(context, n1, n2, state)
+            else: raise ValueError(f"Not supported shape: {pipe}")
         for (element, x, y), state in self.state["elements"]:
             if element == "str0": self.draw_str0(context, x, y, state)
             elif element == "in0": self.draw_in0(context, x, y, state)
+            elif element == "out0": self.draw_out0(context, x, y, state)
+            elif element == "ex0": self.draw_ex0(context, x, y, state)
+            elif element == "nd0": self.draw_nd0(context, x, y, state)
+            elif element == "sn0": self.draw_sn0(context, x, y, state)
             else: raise ValueError(f"Not supported shape: {element}")
 
 class MoonWindow(BaseWindow):    
