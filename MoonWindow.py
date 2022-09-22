@@ -51,7 +51,8 @@ example_library = {
             "radius": 1.0,
             "capacity": 1.0,
             "bandwidth": 0.5,
-            "type": "outer"
+            "type": "outer",
+            "goods": ["Y"]
         },
         "bar0": {
             "io": 1,
@@ -73,7 +74,7 @@ example_library = {
             "type": "mixer"
         },
         "str0": {
-            "io": 2,
+            "io": 3,
             "cost": 3.0,
             "cover": 0.95,
             "radius": 1.0,
@@ -152,7 +153,8 @@ example_state = {
         ("pipe0", ("in0", 2, 2), ("str0", -2, 2), {"switch": 1}),
         ("pipe0", ("str0", -2, 2), ("str0", -4, 4), {"switch": 2}),
         ("pipe0", ("out0", 4, 5.5), ("nd0", 5, 8.5), {"switch": 0}),
-        ("pipe0", ("nd0", 0, 9.5), ("nd0", 5, 8.5), {"switch": 0})
+        ("pipe0", ("nd0", 0, 9.5), ("nd0", 5, 8.5), {"switch": 0}),
+        ("pipe0", ("nd0", 0, 9.5), ("mix0", 6, 12.5), {"switch": 0})
     ],    
     "elements": [
         (("in0", 2, 2), {"X": 2.5, "Y": 5.0}),
@@ -163,7 +165,8 @@ example_state = {
         (("nd0", 0, 9.5), {}),
         (("ex0", -8, 3.5), {}),
         (("ex0", -8, 5.5), {}),
-        (("sn0", -8, 8.5), {"switch": 0})
+        (("sn0", -8, 8.5), {"switch": 0}),
+        (("mix0", 6, 12.5), {"X": 0.0, "Y": 1.0}),
     ]
 }
 
@@ -252,6 +255,29 @@ class MoonPainter:
         context.rectangle(xloc-wbox/4, yloc-hbox/4, wbox/2, hbox/2)
         context.fill()
 
+    def draw_mix0(self, context, xloc, yloc, state):
+        xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 2, 2)
+        
+        context.set_source_rgba(0, 0, 0)
+        context.rectangle(xloc-wbox/2, yloc-hbox/2, wbox, hbox)
+        context.fill()
+
+        context.set_source_rgba(*self.background_color)
+        context.rectangle(xloc-3*wbox/8, yloc-3*hbox/8, 3*wbox/4, 3*hbox/4)
+        context.fill()
+
+        context.set_source_rgba(0, 0, 0)
+        context.set_line_width(wbox/8)
+        
+        context.move_to(xloc, yloc-hbox/2)
+        context.line_to(xloc, yloc+hbox/2) 
+        context.stroke()
+
+        context.move_to(xloc-wbox/2, yloc)
+        context.line_to(xloc+wbox/2, yloc) 
+        context.stroke()
+
+        
     def draw_in0(self, context, xloc, yloc, state):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.5, 1.5)
         
@@ -295,6 +321,7 @@ class MoonPainter:
             elif element == "ex0": self.draw_ex0(context, x, y, state)
             elif element == "nd0": self.draw_nd0(context, x, y, state)
             elif element == "sn0": self.draw_sn0(context, x, y, state)
+            elif element == "mix0": self.draw_mix0(context, x, y, state)
             else: raise ValueError(f"Not supported shape: {element}")
 
 class MoonWindow(BaseWindow):    
