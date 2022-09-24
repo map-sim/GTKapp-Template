@@ -179,11 +179,15 @@ example_setup = {
     "window-size": (1600, 1000),
     "window-offset": (500, 100),
     "window-zoom": 12.5,
+    "move-sensitive": 50,
+    "color-background": (0.9, 0.95, 0.95),
+    "color-pipe": (0.86, 0.5, 0.86),
+    "color-base": (0.5, 0.8, 0.5),
+    "color-node": (0.4, 0, 0.4)
 }
 
 
 class MoonPainter:
-    background_color = 0.95, 0.95, 0.5
     def __init__(self, setup, state):
         self.setup = setup
         self.state = state
@@ -212,7 +216,7 @@ class MoonPainter:
         xi, yi, width, _ = self.calc_render_params(xi, yi, 0.25)
         xe, ye, _, _ = self.calc_render_params(xe, ye)
         
-        context.set_source_rgba(0.66, 0.66, 0.66)
+        context.set_source_rgba(*self.setup["color-pipe"])
         context.set_line_width(width)
         context.move_to(xi, yi)
         context.line_to(xe, ye) 
@@ -235,64 +239,64 @@ class MoonPainter:
     def draw_nd0(self, context, xloc, yloc, state):
         xloc, yloc, wbox, _ = self.calc_render_params(xloc, yloc, 0.4, 0)
 
-        context.set_source_rgba(0, 0, 0)
+        context.set_source_rgba(*self.setup["color-node"])
         context.arc(xloc, yloc, wbox, 0, 2 * pi)
         context.fill()
 
     def draw_sn0(self, context, xloc, yloc, state):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.2, 1.2)
 
-        context.set_source_rgba(0, 0, 0)
+        context.set_source_rgba(*self.setup["color-node"])
         xo, yo = xloc, yloc
         points = [(xo-wbox/2, yo), (xo, yo-hbox/2),
                   (xo+wbox/2, yo), (xo, yo+hbox/2)]
-        self.draw_polygon(context, (0, 0, 0), points)        
+        self.draw_polygon(context, self.setup["color-node"], points)        
 
     def draw_str0(self, context, xloc, yloc, state):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.5, 1.5)
         
-        context.set_source_rgba(0, 0, 0)
+        context.set_source_rgba(*self.setup["color-node"])
         context.rectangle(xloc-wbox/2, yloc-hbox/2, wbox, hbox)
         context.fill()
 
-        context.set_source_rgba(*self.background_color)
+        context.set_source_rgba(*self.setup["color-base"])
         context.rectangle(xloc-wbox/4, yloc-hbox/4, wbox/2, hbox/2)
         context.fill()
 
     def draw_src0(self, context, xloc, yloc, state):
         xloc, yloc, r, _ = self.calc_render_params(xloc, yloc, 0.75, 0)
         
-        context.set_source_rgba(0, 0, 0)
+        context.set_source_rgba(*self.setup["color-node"])
         context.arc(xloc, yloc, r, 0, 2 * pi)
         context.fill()
         
-        context.set_source_rgba(*self.background_color)
+        context.set_source_rgba(*self.setup["color-base"])
         context.arc(xloc, yloc, r/2, 0, 2 * pi)
         context.fill()
 
     def draw_bar0(self, context, xloc, yloc, state):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 2, 2)
         
-        context.set_source_rgba(0, 0, 0)
+        context.set_source_rgba(*self.setup["color-node"])
         context.rectangle(xloc-wbox/2, yloc-hbox/2, wbox, hbox)
         context.fill()
 
-        context.set_source_rgba(*self.background_color)
+        context.set_source_rgba(*self.setup["color-base"])
         context.arc(xloc, yloc, wbox/3, 0, 2 * pi)
         context.fill()
 
     def draw_mix0(self, context, xloc, yloc, state):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 2, 2)
         
-        context.set_source_rgba(0, 0, 0)
+        context.set_source_rgba(*self.setup["color-node"])
         context.rectangle(xloc-wbox/2, yloc-hbox/2, wbox, hbox)
         context.fill()
 
-        context.set_source_rgba(*self.background_color)
+        context.set_source_rgba(*self.setup["color-base"])
         context.rectangle(xloc-3*wbox/8, yloc-3*hbox/8, 3*wbox/4, 3*hbox/4)
         context.fill()
 
-        context.set_source_rgba(0, 0, 0)
+        context.set_source_rgba(*self.setup["color-node"])
         context.set_line_width(wbox/8)
         
         context.move_to(xloc, yloc-hbox/2)
@@ -307,36 +311,40 @@ class MoonPainter:
     def draw_in0(self, context, xloc, yloc, state):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.5, 1.5)
         
-        context.set_source_rgba(0, 0, 0)
+        context.set_source_rgba(*self.setup["color-node"])
         context.rectangle(xloc-wbox/2, yloc-hbox/2, wbox, hbox)
         context.fill()
 
         xo, yo = xloc, yloc + hbox/5
         points = [(xo, yo), (xo + 2*wbox/5, yo - hbox/4),
                   (xo, yo+hbox/4), (xo - 2*wbox/5, yo - hbox/4)]
-        self.draw_polygon(context, self.background_color, points)
+        self.draw_polygon(context, self.setup["color-base"], points)
         xo, yo = xloc, yloc - hbox/5
         points = [(xo, yo), (xo + 2*wbox/5, yo - hbox/4),
                   (xo, yo+hbox/4), (xo - 2*wbox/5, yo - hbox/4)]
-        self.draw_polygon(context, self.background_color, points)
+        self.draw_polygon(context, self.setup["color-base"], points)
 
     def draw_out0(self, context, xloc, yloc, state):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.5, 1.5)
         
-        context.set_source_rgba(0, 0, 0)
+        context.set_source_rgba(*self.setup["color-node"])
         context.rectangle(xloc-wbox/2, yloc-hbox/2, wbox, hbox)
         context.fill()
 
         xo, yo = xloc, yloc - hbox/5
         points = [(xo, yo), (xo + 2*wbox/5, yo + hbox/4),
                   (xo, yo - hbox/4), (xo - 2*wbox/5, yo + hbox/4)]
-        self.draw_polygon(context, self.background_color, points)
+        self.draw_polygon(context, self.setup["color-base"], points)
         xo, yo = xloc, yloc + hbox/5
         points = [(xo, yo), (xo + 2*wbox/5, yo + hbox/4),
                   (xo, yo - hbox/4), (xo - 2*wbox/5, yo + hbox/4)]
-        self.draw_polygon(context, self.background_color, points)
+        self.draw_polygon(context, self.setup["color-base"], points)
 
     def draw(self, context):
+        context.set_source_rgba(*self.setup["color-background"])
+        context.rectangle (0, 0, *self.setup["window-size"])
+        context.fill()
+
         for pipe, n1, n2, state in self.state["connections"]:
             if pipe == "pipe0": self.draw_pipe0(context, n1, n2, state)
             else: raise ValueError(f"Not supported shape: {pipe}")
@@ -392,6 +400,50 @@ class MoonWindow(BaseWindow):
         ox = (int(event.x) - xoffset) / zoom
         oy = (int(event.y) - yoffset) / zoom
         print(f"({round(ox, 2)}, {round(oy, 2)}),")
+        return True
+
+    def on_press(self, widget, event):
+        key_name = Gdk.keyval_name(event.keyval)
+        if key_name == "Return":
+            print("##> move center & redraw")
+            self.setup["window-offset"] = 0, 0
+            self.draw_content()
+        elif key_name == "Up":
+            print("##> move up & redraw")
+            hop = self.setup["move-sensitive"]
+            xoffset, yoffset = self.setup["window-offset"]
+            self.setup["window-offset"] = xoffset, yoffset + hop
+            self.draw_content()
+        elif key_name == "Down":
+            print("##> move down & redraw")
+            hop = self.setup["move-sensitive"]
+            xoffset, yoffset = self.setup["window-offset"]
+            self.setup["window-offset"] = xoffset, yoffset - hop
+            self.draw_content()
+        elif key_name == "Left":
+            print("##> move left & redraw")
+            hop = self.setup["move-sensitive"]
+            xoffset, yoffset = self.setup["window-offset"]
+            self.setup["window-offset"] = xoffset + hop, yoffset
+            self.draw_content()
+        elif key_name == "Right":
+            print("##> move right & redraw")
+            hop = self.setup["move-sensitive"]
+            xoffset, yoffset = self.setup["window-offset"]
+            self.setup["window-offset"] = xoffset - hop, yoffset
+            self.draw_content()
+        elif key_name in ("minus", "KP_Subtract"):
+            print("##> zoom out & redraw")
+            self.setup["window-zoom"] *= 0.75
+            self.draw_content()
+        elif key_name in ("plus", "KP_Add"):
+            print("##> zoom in & redraw")
+            self.setup["window-zoom"] *= 1.25
+            self.draw_content()
+        else:
+            print("not supported key:")
+            print("\tkey name:", Gdk.keyval_name(event.keyval))
+            print("\tkey value:", event.keyval)
         return True
 
     @BaseWindow.double_buffering
