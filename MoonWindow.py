@@ -5,14 +5,13 @@ import os, json, gi, cairo, random
 
 
 from BaseWindow import BaseWindow
-from RawGraph import RawGraph
+from MoonSystem import MoonSystem
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 
 gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk
-
 
 
 example_library = {
@@ -30,7 +29,7 @@ example_library = {
             "io": 2,
             "cost": 1.0,
             "cover": 0.55,
-            "radius": 0.5,
+            "radius": 2.0,
             "capacity": 0.0,
             "bandwidth": 0.5,
             "type": "node"
@@ -39,7 +38,7 @@ example_library = {
             "io": 1,
             "cost": 3.5,
             "cover": 0.3,
-            "radius": 2.0,
+            "radius": 5.0,
             "capacity": 7.5,
             "bandwidth": 0.5,
             "type": "inner"
@@ -48,7 +47,7 @@ example_library = {
             "io": 2,
             "cost": 3.5,
             "cover": 0.7,
-            "radius": 1.0,
+            "radius": 5.0,
             "capacity": 1.0,
             "bandwidth": 0.5,
             "type": "outer",
@@ -58,17 +57,26 @@ example_library = {
             "io": 1,
             "cost": 12.5,
             "cover": 0.6,
-            "radius": 3.0,
+            "radius": 7.0,
             "capacity": 3.5,
             "bandwidth": 1.5,
             "type": "barrier",
             "goods": ["Y"]
         },
+        "acc0": {
+            "io": 2,
+            "cost": 4.0,
+            "cover": 0.9,
+            "radius": 2.5,
+            "capacity": 5.0,
+            "bandwidth": 1.8,
+            "type": "accelerator"
+        },
         "mix0": {
             "io": 3,
             "cost": 4.5,
             "cover": 0.9,
-            "radius": 1.0,
+            "radius": 5.0,
             "capacity": 5.0,
             "bandwidth": 0.7,
             "type": "mixer"
@@ -77,7 +85,7 @@ example_library = {
             "io": 3,
             "cost": 3.0,
             "cover": 0.95,
-            "radius": 1.0,
+            "radius": 5.0,
             "capacity": 15.0,
             "bandwidth": 0.5,
             "type": "store"            
@@ -86,7 +94,7 @@ example_library = {
             "io": 1,
             "cost": 1.5,
             "cover": 0.5,
-            "radius": 2.5,
+            "radius": 3.0,
             "capacity": 0.5,
             "bandwidth": 0.4,
             "type": "source",
@@ -96,7 +104,7 @@ example_library = {
             "io": 0,
             "cost": 1.5,
             "cover": 0.0,
-            "radius": 0.5,
+            "radius": 2.0,
             "capacity": 0.0,
             "bandwidth": 0.0,
             "type": "explorer"
@@ -105,7 +113,7 @@ example_library = {
             "io": 0,
             "cost": 1.5,
             "cover": 0.0,
-            "radius": 0.5,
+            "radius": 2.0,
             "capacity": 0.0,
             "bandwidth": 0.0,
             "switch": 3,
@@ -129,20 +137,24 @@ example_library = {
             "score": 0.666,
             "process": {"X": 4.88}
         }
+    },
+    "radiation": {
+        "method": "rand-cones",
+        "max-amplitude": 2.0,
+        "min-amplitude": 0.1,
+        "max-radius": 50,
+        "min-radius": 1,
+        "frequency": 2
     }
 }
 
 example_state = {
-    "radiation": {
-        "method": "uniformly-rand",
-        "maximum": 2.0,
-        "minimum": 0.1
-    },
     "source": {
         "X": {
-            "maximum": 2.0,
             "method": "additive-cones",
+            "max-amplitude": 2.2,
             "points": [
+                # x, y, amplitude, radius
                 (0, 1, 3.0, 10.0),
                 (7, 1, 1.5, 4.0),
                 (3, -4, 1.2, 3.0)
@@ -150,39 +162,56 @@ example_state = {
         }
     },
     "connections": [
-        ("pipe0", ("in0", 2, 2), ("str0", -2, 2), {"switch": 1}),
-        ("pipe0", ("str0", -2, 2), ("str0", -4, 4), {"switch": 2}),
-        ("pipe0", ("src0", -4, 12), ("str0", -4, 4), {"switch": 2}),
-        ("pipe0", ("out0", 4, 5.5), ("nd0", 5, 8.5), {"switch": 0}),
-        ("pipe0", ("nd0", 0, 9.5), ("nd0", 5, 8.5), {"switch": 0}),
-        ("pipe0", ("nd0", 0, 9.5), ("mix0", 6, 12.5), {"switch": 0}),
-        ("pipe0", ("bar0", 6, 18.5), ("mix0", 6, 12.5), {"switch": 0})
+        ("pipe0", ("src0", -8, 0), ("str0", -8, 6), {"switch": 1}),
+        ("pipe0", ("src0", -13, 2), ("str0", -8, 6), {"switch": 1}),
+        ("pipe0", ("str0", -8, 6), ("acc0", -3.5, 9), {"switch": 1}),
+        ("pipe0", ("acc0", -3.5, 9), ("str0", 1, 7), {"switch": 1}),
+        ("pipe0", ("src0", 1, 1), ("str0", 1, 7), {"switch": 1}),
+
+        ("pipe0", ("str0", 1, 7), ("nd0", 3, 12), {"switch": 1}),
+        ("pipe0", ("nd0", 3, 12), ("mix0", 9, 15), {"switch": 1}),
+        ("pipe0", ("mix0", 9, 15), ("str0", 10, 10), {"switch": 1}),
+        ("pipe0", ("str0", 10, 10), ("bar0", 9, 2.5), {"switch": 1}),
+        ("pipe0", ("str0", 10, 10), ("out0", 14.5, 7.5), {"switch": 1}),
+        ("pipe0", ("mix0", 9, 15), ("in0", 13, 19), {"switch": 1}),
     ],    
     "elements": [
-        (("in0", 2, 2), {"X": 2.5, "Y": 5.0}),
-        (("str0", -2, 2), {"X": 1.0, "Y": 9.0}),
-        (("str0", -4, 4), {"X": 0.0, "Y": 3.0}),
-        (("src0", -4, 12), {"X": 0.5, "Y": 0.0}),
-        (("out0", 4, 5.5), {"X": 0.0, "Y": 1.0}),
-        (("nd0", 5, 8.5), {}),
-        (("nd0", 0, 9.5), {}),
-        (("ex0", -8, 3.5), {}),
-        (("ex0", -8, 5.5), {}),
-        (("sn0", -8, 8.5), {"switch": 0}),
-        (("mix0", 6, 12.5), {"X": 0.0, "Y": 1.0}),
-        (("bar0", 6, 18.5), {"X": 0.0, "Y": 1.5}),
+        (("ex0", 3, -2), {}),
+        (("ex0", -3, -2), {}),
+        (("ex0", -9, -3), {}),
+        (("ex0", -15, -1), {}),
+        (("sn0", -12, -1), {}),
+        (("sn0", -3.5, 0), {}),
+
+        (("src0", -8, 0), {"X": 0.5, "Y": 0.0}),
+        (("src0", -13, 2), {"X": 0.5, "Y": 0.0}),
+        (("str0", -8, 6), {"X": 1.0, "Y": 9.0}),
+        (("acc0", -3.5, 9), {"X": 1.0, "Y": 9.0}),
+
+        (("src0", 1, 1), {"X": 0.5, "Y": 0.0}),
+        (("str0", 1, 7), {"X": 1.0, "Y": 9.0}),
+
+        (("nd0", 3, 12), {}),
+        (("mix0", 9, 15), {"X": 0.0, "Y": 1.0}),
+        (("str0", 10, 10), {"X": 1.0, "Y": 9.0}),
+        (("bar0", 9, 2.5), {"X": 0.0, "Y": 9.0}),
+        (("out0", 14.5, 7.5), {"X": 0.0, "Y": 9.0}),
+        (("in0", 13, 19), {"X": 0.0, "Y": 1.0}),
+
+        (("sn0", 14, 13), {}),
+        (("sn0", 6, 8), {}),
     ]
 }
 
 example_setup = {
     "window-title": "demo moon",
     "window-size": (1600, 1000),
-    "window-offset": (500, 100),
-    "window-zoom": 12.5,
+    "window-offset": (800, 300),
+    "window-zoom": 21.5,
     "move-sensitive": 50,
     "color-background": (0.9, 0.95, 0.95),
-    "color-pipe": (0.86, 0.5, 0.86),
-    "color-base": (0.5, 0.8, 0.5),
+    "color-pipe": (1.0, 0.66, 0.0),
+    "color-base": (1.0, 1.0, 0.0),
     "color-node": (0.4, 0, 0.4)
 }
 
@@ -213,7 +242,7 @@ class MoonPainter:
 
     def draw_pipe0(self, context, node1, node2, state):
         (_, xi, yi), (_, xe, ye) =  node1, node2
-        xi, yi, width, _ = self.calc_render_params(xi, yi, 0.25)
+        xi, yi, width, _ = self.calc_render_params(xi, yi, 0.3)
         xe, ye, _, _ = self.calc_render_params(xe, ye)
         
         context.set_source_rgba(*self.setup["color-pipe"])
@@ -221,13 +250,14 @@ class MoonPainter:
         context.move_to(xi, yi)
         context.line_to(xe, ye) 
         context.stroke()
-
+        
     def draw_ex0(self, context, xloc, yloc, state):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.2, 0.25)
         xi = xloc - hbox/2
         xe = xloc + hbox/2
         yi = yloc + hbox/2
         ye = yloc - hbox/2
+        context.set_source_rgba(*self.setup["color-node"])
         context.set_line_width(wbox)
         context.move_to(xi, yloc)
         context.line_to(xe, yloc) 
@@ -246,14 +276,14 @@ class MoonPainter:
     def draw_sn0(self, context, xloc, yloc, state):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.2, 1.2)
 
-        context.set_source_rgba(*self.setup["color-node"])
         xo, yo = xloc, yloc
+        context.set_source_rgba(*self.setup["color-node"])
         points = [(xo-wbox/2, yo), (xo, yo-hbox/2),
                   (xo+wbox/2, yo), (xo, yo+hbox/2)]
         self.draw_polygon(context, self.setup["color-node"], points)        
 
     def draw_str0(self, context, xloc, yloc, state):
-        xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.5, 1.5)
+        xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.75, 1.75)
         
         context.set_source_rgba(*self.setup["color-node"])
         context.rectangle(xloc-wbox/2, yloc-hbox/2, wbox, hbox)
@@ -275,6 +305,27 @@ class MoonPainter:
         context.fill()
 
     def draw_bar0(self, context, xloc, yloc, state):
+        xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1, 1)
+
+        context.set_source_rgba(*self.setup["color-node"])
+        context.arc(xloc, yloc, wbox, 0, 2 * pi)
+        context.fill()
+        
+        context.set_source_rgba(*self.setup["color-base"])
+        context.arc(xloc, yloc, 2*wbox/3, 0, 2 * pi)
+        context.fill()
+
+        context.set_source_rgba(*self.setup["color-node"])
+        context.set_line_width(wbox/4)
+        context.move_to(xloc-wbox, yloc-hbox)
+        context.line_to(xloc+wbox, yloc+hbox) 
+        context.stroke()
+        context.move_to(xloc+wbox, yloc-hbox)
+        context.line_to(xloc-wbox, yloc+hbox) 
+        context.stroke()
+
+        
+    def draw_acc0(self, context, xloc, yloc, state):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 2, 2)
         
         context.set_source_rgba(*self.setup["color-node"])
@@ -282,7 +333,11 @@ class MoonPainter:
         context.fill()
 
         context.set_source_rgba(*self.setup["color-base"])
-        context.arc(xloc, yloc, wbox/3, 0, 2 * pi)
+        context.arc(xloc, yloc, 2*wbox/5, 0, 2 * pi)
+        context.fill()
+
+        context.set_source_rgba(*self.setup["color-node"])
+        context.arc(xloc, yloc, wbox/7, 0, 2 * pi)
         context.fill()
 
     def draw_mix0(self, context, xloc, yloc, state):
@@ -309,10 +364,10 @@ class MoonPainter:
 
         
     def draw_in0(self, context, xloc, yloc, state):
-        xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.5, 1.5)
+        xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.6, 1.6)
         
         context.set_source_rgba(*self.setup["color-node"])
-        context.rectangle(xloc-wbox/2, yloc-hbox/2, wbox, hbox)
+        context.arc(xloc, yloc, 2.2*wbox/3, 0, 2 * pi)
         context.fill()
 
         xo, yo = xloc, yloc + hbox/5
@@ -325,10 +380,10 @@ class MoonPainter:
         self.draw_polygon(context, self.setup["color-base"], points)
 
     def draw_out0(self, context, xloc, yloc, state):
-        xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.5, 1.5)
+        xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.6, 1.6)
         
         context.set_source_rgba(*self.setup["color-node"])
-        context.rectangle(xloc-wbox/2, yloc-hbox/2, wbox, hbox)
+        context.arc(xloc, yloc, 2.2*wbox/3, 0, 2 * pi)
         context.fill()
 
         xo, yo = xloc, yloc - hbox/5
@@ -357,6 +412,7 @@ class MoonPainter:
             elif element == "sn0": self.draw_sn0(context, x, y, state)
             elif element == "mix0": self.draw_mix0(context, x, y, state)
             elif element == "src0": self.draw_src0(context, x, y, state)
+            elif element == "acc0": self.draw_acc0(context, x, y, state)
             elif element == "bar0": self.draw_bar0(context, x, y, state)
             else: raise ValueError(f"Not supported shape: {element}")
 
@@ -372,6 +428,7 @@ class MoonWindow(BaseWindow):
         title = self.setup["window-title"]
         width, height = self.setup["window-size"]
         self.painter = MoonPainter(self.setup, self.state)
+        self.system = MoonSystem(self.state, self.library)
         BaseWindow.__init__(self, title, width, height)
 
     def on_scroll(self, widget, event):
@@ -440,6 +497,8 @@ class MoonWindow(BaseWindow):
             print("##> zoom in & redraw")
             self.setup["window-zoom"] *= 1.25
             self.draw_content()
+        elif key_name == "space":
+            self.system.run()
         else:
             print("not supported key:")
             print("\tkey name:", Gdk.keyval_name(event.keyval))
