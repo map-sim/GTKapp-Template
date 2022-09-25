@@ -21,9 +21,10 @@ example_library = {
             "cover": 0.55,
             "radius": 0.0,
             "capacity": 0.0,
-            "bandwidth": 0.5,
+            "bandwidth": 0.75,
             "switch": 3,
-            "type": "pipe"
+            "type": "pipe",
+            "length": 12
         },
         "nd0": {
             "io": 2,
@@ -31,7 +32,7 @@ example_library = {
             "cover": 0.55,
             "radius": 2.0,
             "capacity": 0.0,
-            "bandwidth": 0.5,
+            "bandwidth": 0.75,
             "type": "node"
         },
         "in0": {
@@ -59,7 +60,7 @@ example_library = {
             "cover": 0.6,
             "radius": 7.0,
             "capacity": 3.5,
-            "bandwidth": 1.5,
+            "bandwidth": 1.6,
             "type": "barrier",
             "goods": ["Y"]
         },
@@ -78,16 +79,16 @@ example_library = {
             "cover": 0.9,
             "radius": 5.0,
             "capacity": 5.0,
-            "bandwidth": 0.7,
+            "bandwidth": 0.8,
             "type": "mixer"
         },
         "str0": {
-            "io": 3,
+            "io": 4,
             "cost": 3.0,
             "cover": 0.95,
             "radius": 5.0,
             "capacity": 15.0,
-            "bandwidth": 0.5,
+            "bandwidth": 1.2,
             "type": "store"            
         },
         "src0": {
@@ -209,10 +210,12 @@ example_setup = {
     "window-offset": (800, 300),
     "window-zoom": 21.5,
     "move-sensitive": 50,
+    "color-selection": (1.0, 0.0, 0.0),
     "color-background": (0.9, 0.95, 0.95),
     "color-pipe": (1.0, 0.66, 0.0),
     "color-base": (1.0, 1.0, 0.0),
-    "color-node": (0.4, 0, 0.4)
+    "color-node": (0.4, 0, 0.4),
+    "max-selection-range": 25
 }
 
 
@@ -240,24 +243,27 @@ class MoonPainter:
         context.fill()
         context.stroke()
 
-    def draw_pipe0(self, context, node1, node2, state):
+    def draw_pipe0(self, context, node1, node2, state, mark):
         (_, xi, yi), (_, xe, ye) =  node1, node2
         xi, yi, width, _ = self.calc_render_params(xi, yi, 0.3)
         xe, ye, _, _ = self.calc_render_params(xe, ye)
-        
-        context.set_source_rgba(*self.setup["color-pipe"])
+
+        if mark: context.set_source_rgba(*self.setup["color-selection"])
+        else: context.set_source_rgba(*self.setup["color-pipe"])
+
         context.set_line_width(width)
         context.move_to(xi, yi)
         context.line_to(xe, ye) 
         context.stroke()
         
-    def draw_ex0(self, context, xloc, yloc, state):
+    def draw_ex0(self, context, xloc, yloc, state, mark):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.2, 0.25)
         xi = xloc - hbox/2
         xe = xloc + hbox/2
         yi = yloc + hbox/2
         ye = yloc - hbox/2
-        context.set_source_rgba(*self.setup["color-node"])
+        if mark: context.set_source_rgba(*self.setup["color-selection"])
+        else: context.set_source_rgba(*self.setup["color-node"])
         context.set_line_width(wbox)
         context.move_to(xi, yloc)
         context.line_to(xe, yloc) 
@@ -266,26 +272,28 @@ class MoonPainter:
         context.line_to(xloc, ye) 
         context.stroke()
         
-    def draw_nd0(self, context, xloc, yloc, state):
+    def draw_nd0(self, context, xloc, yloc, state, mark):
         xloc, yloc, wbox, _ = self.calc_render_params(xloc, yloc, 0.4, 0)
 
-        context.set_source_rgba(*self.setup["color-node"])
+        if mark: context.set_source_rgba(*self.setup["color-selection"])
+        else: context.set_source_rgba(*self.setup["color-node"])
         context.arc(xloc, yloc, wbox, 0, 2 * pi)
         context.fill()
 
-    def draw_sn0(self, context, xloc, yloc, state):
+    def draw_sn0(self, context, xloc, yloc, state, mark):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.2, 1.2)
 
         xo, yo = xloc, yloc
-        context.set_source_rgba(*self.setup["color-node"])
         points = [(xo-wbox/2, yo), (xo, yo-hbox/2),
                   (xo+wbox/2, yo), (xo, yo+hbox/2)]
-        self.draw_polygon(context, self.setup["color-node"], points)        
+        color = self.setup["color-selection"] if mark else self.setup["color-node"]
+        self.draw_polygon(context, color, points)        
 
-    def draw_str0(self, context, xloc, yloc, state):
+    def draw_str0(self, context, xloc, yloc, state, mark):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.75, 1.75)
         
-        context.set_source_rgba(*self.setup["color-node"])
+        if mark: context.set_source_rgba(*self.setup["color-selection"])
+        else: context.set_source_rgba(*self.setup["color-node"])
         context.rectangle(xloc-wbox/2, yloc-hbox/2, wbox, hbox)
         context.fill()
 
@@ -293,10 +301,11 @@ class MoonPainter:
         context.rectangle(xloc-wbox/4, yloc-hbox/4, wbox/2, hbox/2)
         context.fill()
 
-    def draw_src0(self, context, xloc, yloc, state):
+    def draw_src0(self, context, xloc, yloc, state, mark):
         xloc, yloc, r, _ = self.calc_render_params(xloc, yloc, 0.75, 0)
         
-        context.set_source_rgba(*self.setup["color-node"])
+        if mark: context.set_source_rgba(*self.setup["color-selection"])
+        else: context.set_source_rgba(*self.setup["color-node"])
         context.arc(xloc, yloc, r, 0, 2 * pi)
         context.fill()
         
@@ -304,10 +313,11 @@ class MoonPainter:
         context.arc(xloc, yloc, r/2, 0, 2 * pi)
         context.fill()
 
-    def draw_bar0(self, context, xloc, yloc, state):
+    def draw_bar0(self, context, xloc, yloc, state, mark):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1, 1)
 
-        context.set_source_rgba(*self.setup["color-node"])
+        if mark: context.set_source_rgba(*self.setup["color-selection"])
+        else: context.set_source_rgba(*self.setup["color-node"])
         context.arc(xloc, yloc, wbox, 0, 2 * pi)
         context.fill()
         
@@ -315,7 +325,8 @@ class MoonPainter:
         context.arc(xloc, yloc, 2*wbox/3, 0, 2 * pi)
         context.fill()
 
-        context.set_source_rgba(*self.setup["color-node"])
+        if mark: context.set_source_rgba(*self.setup["color-selection"])
+        else: context.set_source_rgba(*self.setup["color-node"])
         context.set_line_width(wbox/4)
         context.move_to(xloc-wbox, yloc-hbox)
         context.line_to(xloc+wbox, yloc+hbox) 
@@ -325,10 +336,11 @@ class MoonPainter:
         context.stroke()
 
         
-    def draw_acc0(self, context, xloc, yloc, state):
+    def draw_acc0(self, context, xloc, yloc, state, mark):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 2, 2)
         
-        context.set_source_rgba(*self.setup["color-node"])
+        if mark: context.set_source_rgba(*self.setup["color-selection"])
+        else: context.set_source_rgba(*self.setup["color-node"])
         context.rectangle(xloc-wbox/2, yloc-hbox/2, wbox, hbox)
         context.fill()
 
@@ -336,14 +348,16 @@ class MoonPainter:
         context.arc(xloc, yloc, 2*wbox/5, 0, 2 * pi)
         context.fill()
 
-        context.set_source_rgba(*self.setup["color-node"])
+        if mark: context.set_source_rgba(*self.setup["color-selection"])
+        else: context.set_source_rgba(*self.setup["color-node"])
         context.arc(xloc, yloc, wbox/7, 0, 2 * pi)
         context.fill()
 
-    def draw_mix0(self, context, xloc, yloc, state):
+    def draw_mix0(self, context, xloc, yloc, state, mark):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 2, 2)
         
-        context.set_source_rgba(*self.setup["color-node"])
+        if mark: context.set_source_rgba(*self.setup["color-selection"])
+        else: context.set_source_rgba(*self.setup["color-node"])
         context.rectangle(xloc-wbox/2, yloc-hbox/2, wbox, hbox)
         context.fill()
 
@@ -351,7 +365,8 @@ class MoonPainter:
         context.rectangle(xloc-3*wbox/8, yloc-3*hbox/8, 3*wbox/4, 3*hbox/4)
         context.fill()
 
-        context.set_source_rgba(*self.setup["color-node"])
+        if mark: context.set_source_rgba(*self.setup["color-selection"])
+        else: context.set_source_rgba(*self.setup["color-node"])
         context.set_line_width(wbox/8)
         
         context.move_to(xloc, yloc-hbox/2)
@@ -363,10 +378,11 @@ class MoonPainter:
         context.stroke()
 
         
-    def draw_in0(self, context, xloc, yloc, state):
+    def draw_in0(self, context, xloc, yloc, state, mark):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.6, 1.6)
         
-        context.set_source_rgba(*self.setup["color-node"])
+        if mark: context.set_source_rgba(*self.setup["color-selection"])
+        else: context.set_source_rgba(*self.setup["color-node"])
         context.arc(xloc, yloc, 2.2*wbox/3, 0, 2 * pi)
         context.fill()
 
@@ -379,10 +395,11 @@ class MoonPainter:
                   (xo, yo+hbox/4), (xo - 2*wbox/5, yo - hbox/4)]
         self.draw_polygon(context, self.setup["color-base"], points)
 
-    def draw_out0(self, context, xloc, yloc, state):
+    def draw_out0(self, context, xloc, yloc, state, mark):
         xloc, yloc, wbox, hbox = self.calc_render_params(xloc, yloc, 1.6, 1.6)
         
-        context.set_source_rgba(*self.setup["color-node"])
+        if mark: context.set_source_rgba(*self.setup["color-selection"])
+        else: context.set_source_rgba(*self.setup["color-node"])
         context.arc(xloc, yloc, 2.2*wbox/3, 0, 2 * pi)
         context.fill()
 
@@ -395,27 +412,33 @@ class MoonPainter:
                   (xo, yo - hbox/4), (xo - 2*wbox/5, yo + hbox/4)]
         self.draw_polygon(context, self.setup["color-base"], points)
 
-    def draw(self, context):
+    def draw(self, context, selection=None):
         context.set_source_rgba(*self.setup["color-background"])
         context.rectangle (0, 0, *self.setup["window-size"])
         context.fill()
 
         for pipe, n1, n2, state in self.state["connections"]:
-            if pipe == "pipe0": self.draw_pipe0(context, n1, n2, state)
+            if selection is None: mark = False
+            else: mark = n1 in selection.connection and n2 in selection.connection
+            if pipe == "pipe0": self.draw_pipe0(context, n1, n2, state, mark)
             else: raise ValueError(f"Not supported shape: {pipe}")
-        for (element, x, y), state in self.state["elements"]:
-            if element == "str0": self.draw_str0(context, x, y, state)
-            elif element == "in0": self.draw_in0(context, x, y, state)
-            elif element == "out0": self.draw_out0(context, x, y, state)
-            elif element == "ex0": self.draw_ex0(context, x, y, state)
-            elif element == "nd0": self.draw_nd0(context, x, y, state)
-            elif element == "sn0": self.draw_sn0(context, x, y, state)
-            elif element == "mix0": self.draw_mix0(context, x, y, state)
-            elif element == "src0": self.draw_src0(context, x, y, state)
-            elif element == "acc0": self.draw_acc0(context, x, y, state)
-            elif element == "bar0": self.draw_bar0(context, x, y, state)
-            else: raise ValueError(f"Not supported shape: {element}")
 
+        for (element, x, y), state in self.state["elements"]:
+            if selection is None: mark = False
+            else: mark = (element, x, y) == selection.key
+
+            if element == "str0": self.draw_str0(context, x, y, state, mark)
+            elif element == "in0": self.draw_in0(context, x, y, state, mark)
+            elif element == "out0": self.draw_out0(context, x, y, state, mark)
+            elif element == "ex0": self.draw_ex0(context, x, y, state, mark)
+            elif element == "nd0": self.draw_nd0(context, x, y, state, mark)
+            elif element == "sn0": self.draw_sn0(context, x, y, state, mark)
+            elif element == "mix0": self.draw_mix0(context, x, y, state, mark)
+            elif element == "src0": self.draw_src0(context, x, y, state, mark)
+            elif element == "acc0": self.draw_acc0(context, x, y, state, mark)
+            elif element == "bar0": self.draw_bar0(context, x, y, state, mark)
+            else: raise ValueError(f"Not supported shape: {element}")
+            
 class MoonWindow(BaseWindow):    
     def __init__(self, setup=None, state=None, library=None):
         if library is not None: self.library = librar
@@ -425,11 +448,17 @@ class MoonWindow(BaseWindow):
         if setup is not None: self.setup = setup
         else: self.setup = example_setup
 
+        self.selected_node = None
+        
         title = self.setup["window-title"]
         width, height = self.setup["window-size"]
         self.painter = MoonPainter(self.setup, self.state)
         self.system = MoonSystem(self.state, self.library)
         BaseWindow.__init__(self, title, width, height)
+
+    @BaseWindow.double_buffering
+    def draw_content(self, context):
+        self.painter.draw(context, self.selected_node)
 
     def on_scroll(self, widget, event):
         xoffset, yoffset = self.setup["window-offset"]
@@ -457,6 +486,14 @@ class MoonWindow(BaseWindow):
         ox = (int(event.x) - xoffset) / zoom
         oy = (int(event.y) - yoffset) / zoom
         print(f"({round(ox, 2)}, {round(oy, 2)}),")
+        node, r2 = self.system.find_element(ox, oy)
+        if node is not None and r2 < self.setup["max-selection-range"]:
+            print("selection --> ", node)
+            self.selected_node = node
+            self.draw_content()
+        elif self.selected_node is not None:            
+            self.selected_node = None
+            self.draw_content()
         return True
 
     def on_press(self, widget, event):
@@ -505,7 +542,3 @@ class MoonWindow(BaseWindow):
             print("\tkey value:", event.keyval)
         return True
 
-    @BaseWindow.double_buffering
-    def draw_content(self, context):
-        self.painter.draw(context)
-        context.stroke()
