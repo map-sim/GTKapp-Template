@@ -16,7 +16,7 @@ from gi.repository import Gdk
 
 example_library = {
     "infra": {
-        "pipe0": {
+        "pipeX": {
             "cost": 0.5,
             "cover": 0.55,
             "radius": 0.0,
@@ -24,16 +24,35 @@ example_library = {
             "bandwidth": 0.75,
             "switch": 3,
             "type": "pipe",
-            "length": 12
+            "good": "X"
         },
-        "nd0": {
+        "pipeY": {
+            "cost": 0.75,
+            "cover": 0.55,
+            "radius": 0.0,
+            "capacity": 0.0,
+            "bandwidth": 0.75,
+            "switch": 3,
+            "type": "pipe",
+            "good": "Y"
+        },
+        "ndX": {
             "io": 2,
             "cost": 1.0,
-            "cover": 0.55,
             "radius": 2.0,
             "capacity": 0.0,
             "bandwidth": 0.75,
-            "type": "node"
+            "type": "node",
+            "good": "X"
+        },
+        "ndY": {
+            "io": 2,
+            "cost": 1.0,
+            "radius": 2.0,
+            "capacity": 0.0,
+            "bandwidth": 0.75,
+            "type": "node",
+            "good": "Y"
         },
         "in0": {
             "io": 1,
@@ -96,7 +115,7 @@ example_library = {
             "cost": 1.5,
             "cover": 0.5,
             "radius": 3.0,
-            "capacity": 0.5,
+            "capacity": 3.5,
             "bandwidth": 0.4,
             "type": "source",
             "goods": ["X"]
@@ -156,25 +175,25 @@ example_state = {
             "max-amplitude": 2.2,
             "points": [
                 # x, y, amplitude, radius
-                (0, 1, 3.0, 10.0),
-                (7, 1, 1.5, 4.0),
-                (3, -4, 1.2, 3.0)
+                (0, 1, 3.0, 20.0),
+                (7, 2, 1.5, 5.0),
+                (3, -4, 1.2, 5.0)
             ]
         }
     },
     "connections": [
-        ("pipe0", ("src0", -8, 0), ("str0", -8, 6), {"switch": 1}),
-        ("pipe0", ("src0", -13, 2), ("str0", -8, 6), {"switch": 1}),
-        ("pipe0", ("str0", -8, 6), ("acc0", -3.5, 9), {"switch": 1}),
-        ("pipe0", ("acc0", -3.5, 9), ("str0", 1, 7), {"switch": 1}),
-        ("pipe0", ("src0", 1, 1), ("str0", 1, 7), {"switch": 1}),
-
-        ("pipe0", ("str0", 1, 7), ("nd0", 3, 12), {"switch": 1}),
-        ("pipe0", ("nd0", 3, 12), ("mix0", 9, 15), {"switch": 1}),
-        ("pipe0", ("mix0", 9, 15), ("str0", 10, 10), {"switch": 1}),
-        ("pipe0", ("str0", 10, 10), ("bar0", 9, 2.5), {"switch": 1}),
-        ("pipe0", ("str0", 10, 10), ("out0", 14.5, 7.5), {"switch": 1}),
-        ("pipe0", ("mix0", 9, 15), ("in0", 13, 19), {"switch": 1}),
+        ("pipeX", ("src0", -8, 0), ("str0", -8, 6), {"switch": 1}),
+        ("pipeX", ("src0", -13, 2), ("str0", -8, 6), {"switch": 1}),
+        ("pipeX", ("str0", -8, 6), ("acc0", -3.5, 9), {"switch": 1}),
+        ("pipeX", ("acc0", -3.5, 9), ("str0", 1, 7), {"switch": 1}),
+        ("pipeX", ("src0", 1, 1), ("str0", 1, 7), {"switch": 1}),
+        ("pipeX", ("str0", 1, 7), ("ndX", 3, 12), {"switch": 1}),
+        ("pipeX", ("ndX", 3, 12), ("mix0", 9, 15), {"switch": 1}),
+        ("pipeY", ("mix0", 9, 15), ("str0", 10, 10), {"switch": 1}),
+        ("pipeY", ("str0", 10, 10), ("bar0", 9, 2.5), {"switch": 1}),
+        ("pipeY", ("str0", 10, 10), ("out0", 14.5, 7.5), {"switch": 1}),
+        ("pipeY", ("mix0", 9, 15), ("in0", 13, 19), {"switch": 1}),
+        ("pipeX", ("str0", -8, 6), ("str0", -10, 11), {"switch": 1})
     ],    
     "elements": [
         (("ex0", 3, -2), {}),
@@ -184,21 +203,21 @@ example_state = {
         (("sn0", -12, -1), {}),
         (("sn0", -3.5, 0), {}),
 
-        (("src0", -8, 0), {"X": 0.5, "Y": 0.0}),
-        (("src0", -13, 2), {"X": 0.5, "Y": 0.0}),
-        (("str0", -8, 6), {"X": 1.0, "Y": 9.0}),
-        (("acc0", -3.5, 9), {"X": 1.0, "Y": 9.0}),
+        (("src0", -8, 0), {"X": 0.0, "Y": 0.0}),
+        (("src0", -13, 2), {"X": 0.0, "Y": 0.0}),
+        (("str0", -8, 6), {"X": 0.0, "Y": 0.0}),
+        (("acc0", -3.5, 9), {"X": 0.0, "Y": 0.0}),
+        (("src0", 1, 1), {"X": 0.0, "Y": 0.0}),
+        (("str0", 1, 7), {"X": 0.0, "Y": 0.0}),
 
-        (("src0", 1, 1), {"X": 0.5, "Y": 0.0}),
-        (("str0", 1, 7), {"X": 1.0, "Y": 9.0}),
-
-        (("nd0", 3, 12), {}),
-        (("mix0", 9, 15), {"X": 0.0, "Y": 1.0}),
-        (("str0", 10, 10), {"X": 1.0, "Y": 9.0}),
-        (("bar0", 9, 2.5), {"X": 0.0, "Y": 9.0}),
-        (("out0", 14.5, 7.5), {"X": 0.0, "Y": 9.0}),
-        (("in0", 13, 19), {"X": 0.0, "Y": 1.0}),
-
+        (("ndX", 3, 12), {}),
+        (("ndY", 3, 18), {}),
+        (("mix0", 9, 15), {"X": 0.0, "Y": 0.0}),
+        (("str0", 10, 10), {"X": 0.0, "Y": 0.0}),
+        (("bar0", 9, 2.5), {"X": 0.0, "Y": 0.0}),
+        (("in0", 13, 19), {"X": 0.0, "Y": 0.0}),
+        (("out0", 14.5, 7.5), {"X": 0.0, "Y": 0.0}),
+        (("str0", -10, 11), {"X": 0.0, "Y": 0.0}),
         (("sn0", 14, 13), {}),
         (("sn0", 6, 8), {}),
     ]
@@ -212,7 +231,7 @@ example_setup = {
     "move-sensitive": 50,
     "color-selection": (1.0, 0.0, 0.0),
     "color-background": (0.9, 0.95, 0.95),
-    "color-pipe": (1.0, 0.66, 0.0),
+    "color-pipe": (0.0, 0.66, 0.5),
     "color-base": (1.0, 1.0, 0.0),
     "color-node": (0.4, 0, 0.4),
     "max-selection-range": 25
@@ -243,7 +262,7 @@ class MoonPainter:
         context.fill()
         context.stroke()
 
-    def draw_pipe0(self, context, node1, node2, state, mark):
+    def draw_pipe(self, context, node1, node2, state, mark):
         (_, xi, yi), (_, xe, ye) =  node1, node2
         xi, yi, width, _ = self.calc_render_params(xi, yi, 0.3)
         xe, ye, _, _ = self.calc_render_params(xe, ye)
@@ -272,7 +291,7 @@ class MoonPainter:
         context.line_to(xloc, ye) 
         context.stroke()
         
-    def draw_nd0(self, context, xloc, yloc, state, mark):
+    def draw_nd(self, context, xloc, yloc, state, mark):
         xloc, yloc, wbox, _ = self.calc_render_params(xloc, yloc, 0.4, 0)
 
         if mark: context.set_source_rgba(*self.setup["color-selection"])
@@ -419,8 +438,11 @@ class MoonPainter:
 
         for pipe, n1, n2, state in self.state["connections"]:
             if selection is None: mark = False
-            else: mark = n1 in selection.connection and n2 in selection.connection
-            if pipe == "pipe0": self.draw_pipe0(context, n1, n2, state, mark)
+            else:
+                keys = [io.key for io in selection.ios]
+                mark = n1 in keys and n2 in keys 
+            if pipe in ["pipeX", "pipeY"]:
+                self.draw_pipe(context, n1, n2, state, mark)
             else: raise ValueError(f"Not supported shape: {pipe}")
 
         for (element, x, y), state in self.state["elements"]:
@@ -431,7 +453,7 @@ class MoonPainter:
             elif element == "in0": self.draw_in0(context, x, y, state, mark)
             elif element == "out0": self.draw_out0(context, x, y, state, mark)
             elif element == "ex0": self.draw_ex0(context, x, y, state, mark)
-            elif element == "nd0": self.draw_nd0(context, x, y, state, mark)
+            elif element in ["ndX", "ndY"]: self.draw_nd(context, x, y, state, mark)
             elif element == "sn0": self.draw_sn0(context, x, y, state, mark)
             elif element == "mix0": self.draw_mix0(context, x, y, state, mark)
             elif element == "src0": self.draw_src0(context, x, y, state, mark)
@@ -485,22 +507,31 @@ class MoonWindow(BaseWindow):
         zoom = self.setup["window-zoom"]
         ox = (int(event.x) - xoffset) / zoom
         oy = (int(event.y) - yoffset) / zoom
-        print(f"({round(ox, 2)}, {round(oy, 2)}),")
+        print("=====================")
+        print(f"({round(ox, 2)}, {round(oy, 2)}):")
+
+        sources = self.system.check_sources(ox, oy)
+        print("Sources", sources, "\n")
+
         node, r2 = self.system.find_element(ox, oy)
         if node is not None and r2 < self.setup["max-selection-range"]:
             print("selection --> ", node)
+            print("connections --> ", len(node.ios))
+            
             self.selected_node = node
             self.draw_content()
         elif self.selected_node is not None:            
             self.selected_node = None
             self.draw_content()
+
         return True
 
     def on_press(self, widget, event):
         key_name = Gdk.keyval_name(event.keyval)
-        if key_name == "Return":
+        if key_name == "Home":
             print("##> move center & redraw")
             self.setup["window-offset"] = 0, 0
+            self.setup["window-zoom"] = 30.0
             self.draw_content()
         elif key_name == "Up":
             print("##> move up & redraw")
@@ -534,8 +565,13 @@ class MoonWindow(BaseWindow):
             print("##> zoom in & redraw")
             self.setup["window-zoom"] *= 1.25
             self.draw_content()
+        elif key_name == "Escape":
+            print("##> deselect")
+            if self.selected_node is not None:            
+                self.selected_node = None
+                self.draw_content()
         elif key_name == "space":
-            self.system.run()
+            self.system.run(1.0)
         else:
             print("not supported key:")
             print("\tkey name:", Gdk.keyval_name(event.keyval))
