@@ -27,12 +27,6 @@ class MoonNode(dict):
 
     def __setitem__(self, key, value):
         self.__newvals[key] = value
-    
-    def find_neighbors(self):
-        for io in self.ios:
-            print("io", "...", io)
-            for io_io in io.ios:                
-                print("io", "...", "io", "...", io_io)
 
     def __str__(self):
         out = f"{self.key[0]}({self.key[1]},{self.key[2]}) --> "
@@ -105,15 +99,69 @@ class MoonSystem(dict):
                 if good not in goods: continue
             node[good] += value * dtime
 
+    def fuse_pipelines(self, connections):
+        analyzed = set()
+        for key, pipe in connections.items():
+            if len(pipe.ios) != 2: continue
+            if key in analyzed: continue
+            analyzed.add(key)
+            blind = False
+
+            pipe_key = key
+            node = pipe.ios[0]
+            start_pipeline = [node]
+            while node.definition["type"] == "node":
+                if len(node.ios) < 2: blind = True; break
+                if pipe_key != node.ios[0].key: n_pipe = node.ios[0]
+                elif pipe_key != node.ios[1].key: n_pipe = node.ios[1]
+                else: raise ValueError("internal error!")
+                start_pipeline.append(n_pipe)
+                analyzed.add(n_pipe.key)
+                pipe_key = n_pipe.key
+
+                if len(n_pipe.ios) < 2: blind = True; break
+                if n_pipe.ios[0].key != node.key: node = n_pipe.ios[0]
+                elif n_pipe.ios[1].key != node.key: node = n_pipe.ios[1]
+                else: raise ValueError("internal error!")
+                start_pipeline.append(node)
+
+            pipe_key = key
+            node = pipe.ios[1]
+            stop_pipeline = [node]                        
+            while node.definition["type"] == "node":
+                if len(node.ios) < 2: blind = True; break
+                if pipe_key != node.ios[0].key: n_pipe = node.ios[0]
+                elif pipe_key != node.ios[1].key: n_pipe = node.ios[1]
+                else: raise ValueError("internal error!")
+                stop_pipeline.append(n_pipe)
+                analyzed.add(n_pipe.key)
+                pipe_key = n_pipe.key
+
+                if len(n_pipe.ios) < 2: blind = True; break
+                if n_pipe.ios[0].key != node.key: node = n_pipe.ios[0]
+                elif n_pipe.ios[1].key != node.key: node = n_pipe.ios[1]
+                else: raise ValueError("internal error!")
+                stop_pipeline.append(node)
+            
+            pipeline = list(reversed(start_pipeline))
+            pipeline += [pipe] + stop_pipeline
+            if not blind: yield pipeline
+            
     def run(self, dtime):
         print("RUN....")
 
+        connections = {}
+        for key, node in self.items():
+            if not node.ios: continue
+            # print("node", key, f"has {len(node.ios)} connection(s)")
+            for io in node.ios: assert io.definition["type"] == "pipe"
+            for io in node.ios: connections[io.key] = io
+        print("found uniq connections:", len(connections))
+        for pipeline in self.fuse_pipelines(connections):
+            print("p-l", [n.key for n in pipeline])
+        
         for node in self.values():
             if node.definition["type"] == "source":
                 self.fill_source(node, dtime)
-            elif node.definition["type"] == "store":
-                
-                node.find_neighbors()
-
         for node in self.values():
             node.commit()

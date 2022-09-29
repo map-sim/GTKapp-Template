@@ -164,7 +164,8 @@ example_library = {
         "min-amplitude": 0.1,
         "max-radius": 50,
         "min-radius": 1,
-        "frequency": 2
+        "frequency": 2,
+        "process": "Y"
     }
 }
 
@@ -193,7 +194,13 @@ example_state = {
         ("pipeY", ("str0", 10, 10), ("bar0", 9, 2.5), {"switch": 1}),
         ("pipeY", ("str0", 10, 10), ("out0", 14.5, 7.5), {"switch": 1}),
         ("pipeY", ("mix0", 9, 15), ("in0", 13, 19), {"switch": 1}),
-        ("pipeX", ("str0", -8, 6), ("str0", -10, 11), {"switch": 1})
+        ("pipeX", ("str0", -8, 6), ("str0", -10, 11), {"switch": 1}),
+
+        ("pipeX", ("str0", -10, 11), ("ndX", -8, 16), {"switch": 1}),
+        ("pipeX", ("str0", -4, 18), ("ndX", -8, 16), {"switch": 1}),
+
+        ("pipeX", ("str0", -10, 11), ("ndX", -15, 14), {"switch": 1}),
+        ("pipeX", ("ndX", -18, 8), ("ndX", -15, 14), {"switch": 1})
     ],    
     "elements": [
         (("ex0", 3, -2), {}),
@@ -210,8 +217,13 @@ example_state = {
         (("src0", 1, 1), {"X": 0.0, "Y": 0.0}),
         (("str0", 1, 7), {"X": 0.0, "Y": 0.0}),
 
+        (("ndX", -15, 14), {}),
+        (("ndX", -18, 8), {}),
+        (("ndX", -8, 16), {}),
+        (("str0", -4, 18), {"X": 0.0, "Y": 0.0}),
+
         (("ndX", 3, 12), {}),
-        (("ndY", 3, 18), {}),
+        (("ndY", 16, 16), {}),
         (("mix0", 9, 15), {"X": 0.0, "Y": 0.0}),
         (("str0", 10, 10), {"X": 0.0, "Y": 0.0}),
         (("bar0", 9, 2.5), {"X": 0.0, "Y": 0.0}),
@@ -225,12 +237,12 @@ example_state = {
 
 example_setup = {
     "window-title": "demo moon",
-    "window-size": (1600, 1000),
+    "window-size": (1200, 800),
     "window-offset": (800, 300),
     "window-zoom": 21.5,
     "move-sensitive": 50,
     "color-selection": (1.0, 0.0, 0.0),
-    "color-background": (0.9, 0.95, 0.95),
+    "color-background": (0.8, 0.9, 0.9),
     "color-pipe": (0.0, 0.66, 0.5),
     "color-base": (1.0, 1.0, 0.0),
     "color-node": (0.4, 0, 0.4),
