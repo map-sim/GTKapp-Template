@@ -4,34 +4,26 @@ class MoonNode(dict):
     def __init__(self, key, state, definition):
         self.definition = definition
         dict.__init__(self, state)
-        self.__newvals = {}
         self.ios = list()
         self.key = key
 
+    def is_accelerator(self):
+        return self.get_def("type") == "accelerator"
     def is_pipe(self):
         return self.get_def("type") == "pipe"
     def get_def(self, key):
         return self.definition[key]
-
-    # def commit(self):
-    #     total_goods = 0
-    #     keys = self.__newvals.keys() | self.keys()
-    #     for key in keys:
-    #         vol = self.__newvals.get(key, 0)
-    #         if vol == 0: vol = self[key]
-    #         total_goods += vol        
-    #     capacity = self.definition["capacity"]
-    #     if total_goods > capacity:
-    #         factor = capacity / total_goods
-    #     else: factor = 1.0
-    #     for key in keys:
-    #         vol = self.__newvals.get(key, 0)
-    #         if vol == 0: vol = self[key]
-    #         dict.__setitem__(self, key, vol * factor)
-    #     self.__newvals = {}
-    # 
-    # def __setitem__(self, key, value):
-    #     self.__newvals[key] = value
+    def has_def(self, key):
+        return key in self.definition
+    def get_capacity(self):
+        return self.definition["capacity"]
+    def get_empty_space(self):
+        total_goods = 0
+        for key in self.keys():
+            vol = self.get(key, 0)
+            total_goods += vol
+        capacity = self.definition["capacity"]
+        return capacity - total_goods
 
     def __str__(self):
         out = f"{self.key[0]}({self.key[1]},{self.key[2]}) --> "
@@ -40,6 +32,16 @@ class MoonNode(dict):
         return f"{out}"
 
 class MoonPipeline(list):
+    node_transfer_types = {
+        "accelerator": ["active", "dynamic"],
+        "source": ["passive", "source"],
+        "inner": ["passive", "sink"],
+        "outer": ["passive", "sink"],
+        "barrier": ["passive", "sink"],
+        "mixer": ["passive", "mixer"],
+        "store": ["passive", "dynamic"]
+    }
+        
     def __init__(self, system, pipeline):
         list.__init__(self, pipeline)
         self.system = system
@@ -47,15 +49,21 @@ class MoonPipeline(list):
         self.length = 0.0
         self.bandwidth = math.inf
         for item in self:
-            if item.get_def("type") in ["pipe", "node"]:
+            if item.get_def("type") == "node":
                 if item.get_def("bandwidth") < self.bandwidth:
                     self.bandwidth = item.get_def("bandwidth")
+            if item.is_pipe():
+                max_switch = item.get_def("switch") - 1                
+                dbw = item.get_def("bandwidth") / max_switch
+                bandwitch = dbw * item["switch"]
+                if bandwitch < self.bandwidth:
+                    self.bandwidth = bandwitch                
             if item.is_pipe():
                 self.good = item.get_def("good")
                 xyo, xye = item.ios[0].key[1:], item.ios[1].key[1:]
                 d2 = (xye[0] - xyo[0]) ** 2 + (xye[1] - xyo[1]) ** 2
                 self.length += math.sqrt(d2)
-        assert self.bandwidth > 0.0
+        assert 0.0 <= self.bandwidth < math.inf
         assert self.length > 0.0
 
         good_definition = system.library["goods"][self.good]
@@ -70,8 +78,77 @@ class MoonPipeline(list):
         return output
 
     def estimate_transfer(self):
-        # if item.get_def("type") == ""
-        return 0.0
+        if self[0].has_def("goods"):
+            if self.good not in self[0].get_def("goods"):
+                self.estimated_transfer = 0.0
+                return self.estimated_transfer
+        if self[-1].has_def("goods"):
+            if self.good not in self[-1].get_def("goods"):
+                self.estimated_transfer = 0.0
+                return self.estimated_transfer
+            
+        type_o =  self[0].get_def("type")
+        type_e = self[-1].get_def("type")
+        gain_o, role_o = self.node_transfer_types[type_o]
+        gain_e, role_e = self.node_transfer_types[type_e]
+
+        ond, end = "dynamic", "dynamic"
+        if role_o == "source": ond = "in"
+        elif role_o == "sink": ond = "out"
+        elif role_o == "mixer":
+            proc_good = self[0].get_def("process")
+            in_goods = self.system.library["goods"][proc_good]["process"].keys()
+            if self.good in in_goods: ond = "out"
+            elif proc_good == self.good: ond = "in"
+            else:
+                self.estimated_transfer = 0.0
+                return self.estimated_transfer
+        
+        if role_e == "source": end = "in"
+        elif role_e == "sink": end = "out"
+        elif role_e == "mixer":
+            proc_good = self[-1].get_def("process")
+            in_goods = self.system.library["goods"][proc_good]["process"].keys()
+            if self.good in in_goods: end = "out"
+            elif proc_good == self.good: end = "in"
+            else:
+                self.estimated_transfer = 0.0
+                return self.estimated_transfer
+        if ond == end != "dynamic":
+            self.estimated_transfer = 0.0
+            return self.estimated_transfer
+
+        o_volume = self[0][self.good]
+        e_volume = self[-1][self.good]        
+        o_empty = self[0].get_empty_space()
+        e_empty = self[-1].get_empty_space()
+        o_cap = self[0].get_capacity()
+        e_cap = self[-1].get_capacity()
+
+        o_frac = o_empty / o_cap
+        e_frac = e_empty / e_cap
+
+        st = self.system.library["goods"][self.good]["stickiness"]
+        factor1 = self.bandwidth / (1.0 + self.length * st)
+        if "dynamic" == ond == end:
+            if e_frac > o_frac: direction = 1
+            else: direction = -1
+        elif ond == "in": direction = 1
+        elif ond == "out": direction = -1
+        elif end == "in": direction = -1
+        elif end == "out": direction = 1
+        else: raise ValueError("internal-error")
+
+        if direction == 1:
+            factor2 = (e_frac / o_frac) / (1.0 + e_frac / o_frac)
+        else: factor2 = (o_frac / e_frac) / (1.0 + o_frac / e_frac)
+        self.estimated_transfer = direction * factor1 * factor2
+        if gain_o == "active":
+            self.estimated_transfer *= self[0].get_def("factor")
+        if gain_e == "active":
+            self.estimated_transfer *= self[-1].get_def("factor")
+        return self.estimated_transfer
+
     
 class MoonSystem(dict):
     def __init__(self, state, library):
@@ -119,7 +196,7 @@ class MoonSystem(dict):
                     d2 = (xloc-x)**2 + (yloc-y)**2
                     d = math.sqrt(d2)
                     if d > r: continue
-                    output[good] += a * d / r
+                    output[good] += a * (r-d) / r
                 if output[good] > max_value:
                     output[good] = max_value
             else: raise ValueError("unknown good-method")
@@ -188,20 +265,20 @@ class MoonSystem(dict):
                 if n_pipe.ios[0].key != node.key: node = n_pipe.ios[0]
                 elif n_pipe.ios[1].key != node.key: node = n_pipe.ios[1]
                 else: raise ValueError("internal error!")
-                stop_pipeline.append(node)            
+                stop_pipeline.append(node)
             if blind: continue
 
             pipeline = list(reversed(start_pipeline))
             pipeline += [pipe] + stop_pipeline
-            yield MoonPipeline(self, pipeline)
-            
+            pipe_obj= MoonPipeline(self, pipeline)
+            yield pipe_obj
+
     def run(self, dtime):
         print("RUN....")
 
         connections = self.find_elementary_connections()
         for pipeline in self.fuse_pipelines(connections):
-            print(pipeline)
-            print(pipeline.estimate_transfer())
+            print(pipeline, "----", pipeline.estimate_transfer())
 
         for node in self.values():
             if node.get_def("type") == "source":

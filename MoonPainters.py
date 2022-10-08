@@ -229,12 +229,27 @@ class MoonDistPainter:
         self.setup = setup
 
     def draw(self, context, kind, param):
-        context.set_source_rgba(1, 0.5, 1)
+        context.set_source_rgba(1, 1, 1)
         context.rectangle (0, 0, *self.setup["window-size"])
         context.fill()
 
+        xoffset, yoffset = self.setup["window-offset"]
+        width, height = self.setup["window-size"]
+        zoom = self.setup["window-zoom"]
+
         if kind == "source":
-            dist = self.system.state["source"][param]
-            print(dist) ### TODO
+            vmax = self.system.state["source"][param]["max-amplitude"]
+            #dist =             
+
+            for x in range(width):
+                for y in range(height):
+                    ox = (x - xoffset) / zoom
+                    oy = (y - yoffset) / zoom
+                    src_dict = self.system.check_sources(ox, oy)
+                    f = float(src_dict.get(param))/vmax
+                    if not f: continue
+                    context.set_source_rgba(1.0, 1.0-f, 1.0-f)
+                    context.arc(x, y, 0.75, 0, 2 * pi)
+                    context.fill()
         else: raise ValueError("dist kind")
         
