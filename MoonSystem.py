@@ -4,8 +4,79 @@ class MoonNode(dict):
     def __init__(self, key, state, definition):
         self.definition = definition
         dict.__init__(self, state)
+        self.transfers = []
         self.ios = list()
         self.key = key
+
+    def reset_transfers(self):
+        self.transfers = []
+
+    def sum_transfers(self):
+        sum_goods = {}
+        for _, good, transfer in self.transfers:
+            if transfer > 0:
+                try: sum_goods[good] += transfer
+                except KeyError: sum_goods[good] = transfer
+        return sum_goods
+    def limit_transfers_1(self):
+        factor_goods = {}
+        sum_goods = self.sum_transfers()
+        for good, value in self.items():
+            if value <= self[good]: continue
+            factor_goods[good] = self[good] / value
+        
+        for index, (node, good, transfer) in enumerate(self.transfers):
+            if good not in factor_goods: continue
+            self.transfers[index][2] *= factor_goods[good]
+            for index2, (node2, good2, transfer2) in enumerate(node.transfers):
+                if node2 is not self or good2 != good: continue
+                if transfer2 > 0: continue
+                if transfer != -transfer2:
+                    print("Warning", index, (node.key, good, transfer), index2, (node2.key, good2, transfer2))
+                node.transfers[index2][2] *= factor_goods[good]
+
+    def limit_transfers_2(self):
+        total = sum(self.values())
+        for _, _, transfer in self.transfers:
+            if transfer < 0: total -= transfer
+        if total <= self.get_capacity(): return
+        factor = self.get_capacity() / total
+        
+        for index, (node, good, transfer) in enumerate(self.transfers):
+            if transfer <= 0: continue            
+            self.transfers[index][2] *= factor
+            for index2, (node2, good2, transfer2) in enumerate(node.transfers):
+                if node2 is not self or good2 != good: continue
+                if transfer2 > 0: continue
+                if transfer != -transfer2:
+                    print("Warning", index, (node.key, good, transfer), index2, (node2.key, good2, transfer2))
+                node.transfers[index2][2] *= factor
+
+    def normalize_transfer(self):
+        if not self.transfers: return
+        self.limit_transfers_1()
+        self.limit_transfers_2()
+        
+        # print("\n###\n", self)
+        # for node, good, transfer in self.transfers:
+        #     print(node, "|", good, "|", transfer)
+
+    def process(self, processes):
+        if self.get_def("type") != "mixer": return
+        target = self.get_def("process")
+        process = processes[target]["process"]
+        
+        bw = self.get_def("bandwidth")
+        for good, value in process.items():
+            if self[good] < value * bw: bw = self[good] / value
+        self[target] += bw
+        print(target, bw)
+        for good, value in process.items():
+            self[good] -= bw * value
+
+    def apply_transfer(self):
+        for _, good, transfer in self.transfers:
+            self[good] -= transfer
 
     def is_accelerator(self):
         return self.get_def("type") == "accelerator"
@@ -86,7 +157,7 @@ class MoonPipeline(list):
             if self.good not in self[-1].get_def("goods"):
                 self.estimated_transfer = 0.0
                 return self.estimated_transfer
-            
+
         type_o =  self[0].get_def("type")
         type_e = self[-1].get_def("type")
         gain_o, role_o = self.node_transfer_types[type_o]
@@ -140,8 +211,17 @@ class MoonPipeline(list):
         else: raise ValueError("internal-error")
 
         if direction == 1:
-            factor2 = (e_frac / o_frac) / (1.0 + e_frac / o_frac)
-        else: factor2 = (o_frac / e_frac) / (1.0 + o_frac / e_frac)
+            if self[0][self.good] == 0:
+                self.estimated_transfer = 0.0
+                return self.estimated_transfer
+            if o_frac == 0: factor2 = 1 
+            else: factor2 = (e_frac / o_frac) / (1.0 + e_frac / o_frac)
+        else:
+            if self[-1][self.good] == 0:
+                self.estimated_transfer = 0.0
+                return self.estimated_transfer
+            if e_frac == 0: factor2 = 1
+            else: factor2 = (o_frac / e_frac) / (1.0 + o_frac / e_frac)
         self.estimated_transfer = direction * factor1 * factor2
         if gain_o == "active":
             self.estimated_transfer *= self[0].get_def("factor")
@@ -205,11 +285,10 @@ class MoonSystem(dict):
     def fill_source(self, node, dtime):
         assert node.get_def("type") == "source"
         sources = self.check_sources(node.key[1], node.key[2])
-        for good, value in sources.items():
-            if "goods" in node.definition:
-                goods = node.get_def("goods")
-                if good not in goods: continue
-            node[good] += value * dtime
+        good = node.get_def("good")
+        node[good] += sources[good] * dtime
+        if node[good] > node.get_def("capacity"):
+            node[good] = node.get_def("capacity")
 
     def find_elementary_connections(self):
         connections = {}
@@ -276,13 +355,33 @@ class MoonSystem(dict):
     def run(self, dtime):
         print("RUN....")
 
-        connections = self.find_elementary_connections()
-        for pipeline in self.fuse_pipelines(connections):
-            print(pipeline, "----", pipeline.estimate_transfer())
+        for node in self.values():
+            node.reset_transfers()
 
         for node in self.values():
             if node.get_def("type") == "source":
                 self.fill_source(node, dtime)
+            
+        connections = self.find_elementary_connections()
+        for pipeline in self.fuse_pipelines(connections):
+            transfer = pipeline.estimate_transfer() * dtime
+            if transfer == 0.0: continue
+            pipeline[0].transfers.append([pipeline[-1], pipeline.good, transfer])
+            pipeline[-1].transfers.append([pipeline[0], pipeline.good, -transfer])
+            print(pipeline, "----", pipeline.estimate_transfer())
+
+        # for node in self.values():
+        #     print(node.key)
+        #     for tra in node.transfers:
+        #         print("tra", tra)
+
+        for node in self.values():
+            node.normalize_transfer()
+        for node in self.values():
+            node.apply_transfer()
+
+        for node in self.values():
+            node.process(self.library["goods"])
 
         # for node in self.values():
         #     node.commit()

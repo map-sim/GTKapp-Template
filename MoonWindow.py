@@ -131,7 +131,7 @@ class MoonWindow(BaseWindow):
             self.selected_node = None
             self.draw_content()
         elif key_name == "space":
-            self.system.run(1.0)
+            self.system.run(10.0)
         elif key_name == "X":
             print("##> X & redraw")
             self.draw_distribution_args = "source", "X"
