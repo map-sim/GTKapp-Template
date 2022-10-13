@@ -11,22 +11,24 @@ class MoonNode(dict):
     def reset_transfers(self):
         self.transfers = []
 
-    def sum_transfers(self):
+    def sum_exports(self):
         sum_goods = {}
         for _, good, transfer in self.transfers:
-            if transfer > 0:
-                try: sum_goods[good] += transfer
-                except KeyError: sum_goods[good] = transfer
+            if transfer <= 0: continue
+            try: sum_goods[good] += transfer
+            except KeyError: sum_goods[good] = transfer
         return sum_goods
+
     def limit_transfers_1(self):
-        factor_goods = {}
-        sum_goods = self.sum_transfers()
-        for good, value in self.items():
-            if value <= self[good]: continue
+        if not self.transfers: return
+        sum_goods, factor_goods = self.sum_exports(), {}
+        for good, value in sum_goods.items():
+            if value <= self[good]: continue            
             factor_goods[good] = self[good] / value
-        
+            # print(f"not enougth {good} to export in", self.key)
+            
         for index, (node, good, transfer) in enumerate(self.transfers):
-            if good not in factor_goods: continue
+            if good not in factor_goods or transfer <= 0: continue
             self.transfers[index][2] *= factor_goods[good]
             for index2, (node2, good2, transfer2) in enumerate(node.transfers):
                 if node2 is not self or good2 != good: continue
@@ -36,14 +38,17 @@ class MoonNode(dict):
                 node.transfers[index2][2] *= factor_goods[good]
 
     def limit_transfers_2(self):
-        total = sum(self.values())
+        if not self.transfers: return
+        total, income = sum(self.values()), 0.0
         for _, _, transfer in self.transfers:
-            if transfer < 0: total -= transfer
-        if total <= self.get_capacity(): return
-        factor = self.get_capacity() / total
+            if transfer >= 0: continue
+            income -= transfer
+            total -= transfer
+        if total <= self.get_capacity() or income == 0.0: return
+        factor = 1.0 - (total - self.get_capacity()) / income 
         
         for index, (node, good, transfer) in enumerate(self.transfers):
-            if transfer <= 0: continue            
+            if transfer > 0: continue            
             self.transfers[index][2] *= factor
             for index2, (node2, good2, transfer2) in enumerate(node.transfers):
                 if node2 is not self or good2 != good: continue
@@ -51,15 +56,6 @@ class MoonNode(dict):
                 if transfer != -transfer2:
                     print("Warning", index, (node.key, good, transfer), index2, (node2.key, good2, transfer2))
                 node.transfers[index2][2] *= factor
-
-    def normalize_transfer(self):
-        if not self.transfers: return
-        self.limit_transfers_1()
-        self.limit_transfers_2()
-        
-        # print("\n###\n", self)
-        # for node, good, transfer in self.transfers:
-        #     print(node, "|", good, "|", transfer)
 
     def process(self, processes):
         if self.get_def("type") != "mixer": return
@@ -70,7 +66,6 @@ class MoonNode(dict):
         for good, value in process.items():
             if self[good] < value * bw: bw = self[good] / value
         self[target] += bw
-        print(target, bw)
         for good, value in process.items():
             self[good] -= bw * value
 
@@ -368,7 +363,7 @@ class MoonSystem(dict):
             if transfer == 0.0: continue
             pipeline[0].transfers.append([pipeline[-1], pipeline.good, transfer])
             pipeline[-1].transfers.append([pipeline[0], pipeline.good, -transfer])
-            print(pipeline, "----", pipeline.estimate_transfer())
+            print(pipeline, "----", pipeline.good, pipeline.estimate_transfer())
 
         # for node in self.values():
         #     print(node.key)
@@ -376,7 +371,11 @@ class MoonSystem(dict):
         #         print("tra", tra)
 
         for node in self.values():
-            node.normalize_transfer()
+            node.limit_transfers_1()
+            
+        for node in self.values():
+            node.limit_transfers_2()
+
         for node in self.values():
             node.apply_transfer()
 
