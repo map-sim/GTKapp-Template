@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
-from math import pi, sqrt, atan2
-import os, json, gi, cairo, random
+import gi, cairo
 from BaseWindow import BaseWindow
 
 gi.require_version('Gtk', '3.0')
@@ -14,17 +13,15 @@ class NaviPainter:
     def __init__(self, config):
         self.config = config
 
-    def draw_base(self, context):
+    def draw_base(self, context, color):
         width, height = self.config["window-size"]
-        color = self.config["background-color"]
         context.set_source_rgba(*color)
         context.rectangle(0, 0, width, height)
         context.fill()
 
-    def draw_rect(self, context, params):
+    def draw_rect(self, context, params, color):
         zoom = self.config["window-zoom"]
         xoffset, yoffset = self.config["window-offset"]
-        color = self.config["foreground-color"]
         context.set_source_rgba(*color)
         xloc, yloc, wbox, hbox = params
         xloc, yloc = xloc*zoom, yloc*zoom
@@ -33,12 +30,15 @@ class NaviPainter:
         context.fill()
 
     def draw(self, context):
-        self.draw_base(context)
-        self.draw_rect(context, self.config["primary-rect"])
-        self.draw_rect(context, self.config["secondary-rect"])
+        bcolor = self.config["background-color"]
+        self.draw_base(context, bcolor)
+
+        fcolor = self.config["foreground-color"]
+        self.draw_rect(context, self.config["primary-rect"], fcolor)
+        self.draw_rect(context, self.config["secondary-rect"], fcolor)
         
 class NaviWindow(BaseWindow):
-    def __init__(self, config=None):
+    def __init__(self, config):
         self.painter = NaviPainter(config)
         self.config = config
 
