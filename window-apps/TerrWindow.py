@@ -3,8 +3,8 @@
 import gi, cairo, math
 from NaviWindow import NaviWindow
 from BaseWindow import BaseWindow
-from TerrExamples import library0 as terr_library
-from TerrExamples import battlefield0 as terr_battlefield
+from MapExamples import library0 as terr_library
+from MapExamples import battlefield0 as terr_battlefield
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
@@ -64,6 +64,8 @@ class TerrPainter:
         xloc, yloc = xloc*zoom, yloc*zoom
         xloc, yloc = xloc + xoffset, yloc + yoffset
         context.rectangle(xloc, yloc, wbox*zoom, hbox*zoom)
+        context.fill()
+        context.stroke()
 
     def draw_polygon(self, context, terrain, params):
         zoom = self.config["window-zoom"]
@@ -120,7 +122,13 @@ class TerrGraph:
             if shape == "base":
                 output_terr = terr
                 output_row = shape, terr, params
-            # elif shape == "rect": TODO
+            elif shape == "rect":
+                xo, yo = params[0], params[1]
+                polygon = [(xo, yo), (xo+params[2], yo),
+                           (xo+params[2], yo+params[3]), (xo, yo+params[3])]                
+                if self.check_in_polygon((xloc, yloc), polygon):
+                    output_row = shape, terr, params
+                    output_terr = terr
             elif shape == "polygon":
                 if self.check_in_polygon((xloc, yloc), params):
                     output_row = shape, terr, params
