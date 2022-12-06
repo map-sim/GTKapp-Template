@@ -25,10 +25,22 @@ library0 = {
             "desc": "navigable water",
             "color": (0.45, 0.8, 0.95)
         }
-    }    
+    },
+    "infrastructure": {
+        "building-0": {
+            "desc": "small building",
+            "color": (0.3, 0.3, 0.3),
+            "size": (100, 100)
+        }
+    }
 }
-    
+
 battlefield0 = {
+    "infrastructure": [
+        ("building-0", 1200, 600, 1.0),
+        ("building-0", 1250, 700, 1.0),
+        ("building-0", 400, 900, 1.0)
+    ],
     "terrains": [
         ("base", "water-1"),
         ("polygon", "water-0",
@@ -684,6 +696,18 @@ battlefield0 = {
          (-2942.72, 503.87),
          (-2940.67, 465.43),
          (-2994.99, 440.32)
+         ),
+        ("rect", "water-0", -2850, 480, 100, 160),
+        ("rect", "water-0", -2810, 360, 20, 200),
+        ("polygon", "water-0",
+         (-2842.71, 364.55),
+         (-2799.9, 396.4),
+         (-2772.02, 356.58)
+        ),
+        ("polygon", "water-0",
+         (-2834.34, 485.64),
+         (-2759.61, 486.63),
+         (-2793.76, 428.73)
         )
     ]
 }

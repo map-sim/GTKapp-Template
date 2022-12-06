@@ -3,8 +3,6 @@
 import gi, cairo, math
 from NaviWindow import NaviWindow
 from BaseWindow import BaseWindow
-from MapExamples import library0 as terr_library
-from MapExamples import battlefield0 as terr_battlefield
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
@@ -99,7 +97,6 @@ class TerrPainter:
 
 class TerrGraph:
     def __init__(self, battlefield):
-        self.infrastructure = list()
         self.battlefield = battlefield
 
     def check_in_polygon(self, xyloc, xypoints):
@@ -172,7 +169,10 @@ def run_example():
         "move-sensitive": 50
     }
     
-    TerrWindow(example_config, terr_library, terr_battlefield)
+    from MapExamples import library0
+    from MapExamples import battlefield0
+    TerrWindow(example_config, library0, battlefield0)
+
     try: Gtk.main()
     except KeyboardInterrupt:
         print("KeyboardInterrupt")
