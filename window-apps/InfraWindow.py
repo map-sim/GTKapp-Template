@@ -115,7 +115,12 @@ class InfraWindow(TerrWindow):
         if not self.infra_painter.selected_infrastructure:
             print("No infra selected...")
             return
-        print("d...")
+
+        for ix in reversed(sorted(self.infra_painter.selected_infrastructure)):
+            di = self.battlefield["infrastructure"].pop(ix)
+            print(f"delete infrastructure element: {di}...")
+        self.infra_painter.selected_infrastructure = set()
+        self.draw_content()
         
     def save_map(self, prefix1, prefix2):
         ex = lambda f: os.path.exists(f)
