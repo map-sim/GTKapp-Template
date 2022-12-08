@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
-import sys, os, json, gi, cairo, math
+import sys, os, json, gi, cairo
+import copy, math
+
 from BaseWindow import BaseWindow
 from NaviWindow import NaviWindow
 from TerrWindow import TerrWindow
@@ -77,15 +79,26 @@ class MultiPainter(list):
         for item in self: item.draw(context)
 
 class InfraWindow(TerrWindow):
-    def __init__(self, config, library, battlefield):
-        self.graph = InfraGraph(config, battlefield)
+    default_app_controls = {
+        "infra-num-to-add": 0,
+        "selection-add": False,
+        "current-mode": "navigation",
+        "available-modes": {
+            "F1": "navigation",
+            "F2": "selection",
+            "F3": "inserting",
+            "F4": "deleting"
+        }
+    }
 
+    def __init__(self, config, library, battlefield):
+        self.app_controls = copy.deepcopy(self.default_app_controls)        
         self.terr_painter = TerrPainter(config, library, battlefield)
         self.infra_painter = InfraPainter(config, library, battlefield)
+        self.graph = InfraGraph(config, battlefield)
         self.painter = MultiPainter()
         self.painter.append(self.terr_painter)
         self.painter.append(self.infra_painter)
-
         self.battlefield =  battlefield
         self.library = library
         self.config = config
@@ -102,10 +115,26 @@ class InfraWindow(TerrWindow):
         oy = (int(event.y) - yoffset) / zoom
 
         if event.button == 1:
-            selection = self.graph.check_infra(ox, oy)
-            self.infra_painter.selected_infrastructure = selection
-            print(f"({round(ox, 2)}, {round(oy, 2)}) --> {selection}")
-            self.draw_content()
+            if self.check_mode("selection") or self.check_mode("deleting"):
+                selection = self.graph.check_infra(ox, oy)
+                if not self.app_controls["selection-add"]:
+                    self.infra_painter.selected_infrastructure = selection
+                else: self.infra_painter.selected_infrastructure |= selection
+                print(f"({round(ox, 2)}, {round(oy, 2)}) --> {selection}")
+                self.draw_content()
+
+            elif self.check_mode("inserting"):
+                buildlist = list(sorted(self.library["infrastructure"].keys()))
+                build = buildlist[self.app_controls["infra-num-to-add"]]
+
+                # TODO: validate x, y
+                insrow = (build, round(ox), round(oy), 1.0)
+                
+                self.battlefield["infrastructure"].append(insrow)
+                print("add infra", insrow)
+                self.draw_content()
+
+            else: print(f"({round(ox, 2)}, {round(oy, 2)}), ")
         elif event.button == 3:
             terr = self.graph.check_terrain(ox, oy)
             print(f"({round(ox, 2)}, {round(oy, 2)}) --> {terr}")
@@ -140,14 +169,48 @@ class InfraWindow(TerrWindow):
 
     def on_press(self, widget, event):
         key_name = Gdk.keyval_name(event.keyval)
-        if key_name == "Insert":
-            print("##> save")
-            self.save_map("outlib", "outfield")
+        if key_name == "Escape":
+            print("##> ESC - go back to default controls")
+            self.app_controls = copy.deepcopy(self.default_app_controls)
+            self.infra_painter.selected_infrastructure = set()
+            self.draw_content()
+
+        elif key_name in ["F1", "F2", "F3", "F4"]: 
+            mode = self.app_controls["available-modes"][key_name]
+            self.app_controls["current-mode"] = mode
+            print("##> mode", mode)
+
+        elif key_name in "sS":
+            if self.check_mode("navigation"):
+                print("##> save")
+                self.save_map("outlib", "outfield")
+            else: print("Current mode does not support keys sS")
+
+        elif key_name == "Insert":
+            if self.check_mode("inserting"):
+                self.app_controls["infra-num-to-add"] += 1
+                ilen = len(self.library["infrastructure"])
+                self.app_controls["infra-num-to-add"] %= ilen
+                print("infra:", self.app_controls["infra-num-to-add"])
+            else: print("Current mode does not support inserting")
+            
         elif key_name == "Delete":
-            print("##> delete")
-            self.delete_selection()
+            if self.check_mode("deleting"):
+                print("##> delete")
+                self.delete_selection()
+            else: print("Current mode does not support deleting")
+
+        elif key_name in "aA":
+            if self.check_mode("selection"):
+                new_val = not self.app_controls["selection-add"]
+                self.app_controls["selection-add"] = new_val
+                print("##> selection-add", new_val)
+            else: print("Current mode does not support keys aA")
         else: NaviWindow.on_press(self, widget, event)
-    
+
+    def check_mode(self, mode):
+        return self.app_controls["current-mode"] == mode
+
 def run_example():
     example_config = {
         "window-title": "infra-window",
