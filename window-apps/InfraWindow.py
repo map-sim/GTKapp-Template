@@ -52,11 +52,92 @@ class InfraPainter:
         context.rectangle(xloc+65*zoom, yloc+65*zoom, 20*zoom, 20*zoom)
         context.fill()
 
+    def draw_seeport_0(self, context, params, index):
+        outs = self.get_infrastructure_params("seeport-0", *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
+        if index in self.selected_infrastructure:
+            color = self.config["selection-color"]
+        xloc =  xloc - wbox / 2
+        yloc =  yloc - hbox / 2
+
+        context.set_source_rgba(*color)
+        context.rectangle(xloc, yloc, wbox, 5*zoom)
+        context.rectangle(xloc, yloc+hbox-5*zoom, wbox, 5*zoom)
+        context.rectangle(xloc, yloc, 5*zoom, hbox)
+        context.rectangle(xloc+wbox-5*zoom, yloc, 5*zoom, hbox)
+        context.rectangle(xloc+50*zoom, yloc+10*zoom, 50*zoom, 130*zoom)
+        context.rectangle(xloc+10*zoom, yloc+10*zoom, 130*zoom, 30*zoom)
+        context.rectangle(xloc+10*zoom, yloc + hbox - 40*zoom, 130*zoom, 30*zoom)
+        context.fill()
+
+    def draw_seeport_1(self, context, params, index):
+        outs = self.get_infrastructure_params("seeport-1", *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
+        if index in self.selected_infrastructure:
+            color = self.config["selection-color"]
+        xloc =  xloc - wbox / 2
+        yloc =  yloc - hbox / 2
+
+        context.set_source_rgba(*color)
+        context.rectangle(xloc, yloc, wbox, 5*zoom)
+        context.rectangle(xloc, yloc+hbox-5*zoom, wbox, 5*zoom)
+        context.rectangle(xloc, yloc, 5*zoom, hbox)
+        context.rectangle(xloc+wbox-5*zoom, yloc, 5*zoom, hbox)
+        context.rectangle(xloc+40*zoom, yloc+10*zoom, 25*zoom, 80*zoom)
+        context.rectangle(xloc+10*zoom, yloc+10*zoom, 80*zoom, 20*zoom)
+        context.rectangle(xloc+10*zoom, yloc + hbox - 30*zoom, 80*zoom, 20*zoom)
+        context.fill()
+
+    def draw_airport_0(self, context, params, index):
+        outs = self.get_infrastructure_params("seeport-0", *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
+        if index in self.selected_infrastructure:
+            color = self.config["selection-color"]
+        xloc =  xloc - wbox / 2
+        yloc =  yloc - hbox / 2
+
+        context.set_source_rgba(*color)
+        context.rectangle(xloc, yloc, wbox, 5*zoom)
+        context.rectangle(xloc, yloc+hbox-5*zoom, wbox, 5*zoom)
+        context.rectangle(xloc, yloc, 5*zoom, hbox)
+        context.rectangle(xloc+wbox-5*zoom, yloc, 5*zoom, hbox)
+        context.rectangle(xloc+40*zoom, yloc+10*zoom, 25*zoom, 130*zoom)
+        context.rectangle(xloc+10*zoom, yloc+40*zoom, 130*zoom, 25*zoom)
+        context.fill()
+
+    def draw_fortress_0(self, context, params, index):
+        outs = self.get_infrastructure_params("fortress-0", *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
+        if index in self.selected_infrastructure:
+            color = self.config["selection-color"]
+        xloc =  xloc - wbox / 2
+        yloc =  yloc - hbox / 2
+
+        sq = 10*zoom
+        context.set_source_rgba(*color)
+        context.rectangle(xloc, yloc, sq, sq)
+        context.rectangle(xloc + wbox - sq, yloc, sq, sq)
+        context.rectangle(xloc, yloc + hbox - sq, sq, sq)
+        context.rectangle(xloc + wbox - sq, yloc + hbox - sq, sq, sq)
+        context.rectangle(xloc + (wbox - sq) / 3, yloc + hbox - sq, sq, sq)
+        context.rectangle(xloc + 2 * (wbox - sq) / 3, yloc + hbox - sq, sq, sq)
+        context.rectangle(xloc + (wbox - sq), yloc + (hbox - sq) / 3, sq, sq)
+        context.rectangle(xloc + (wbox - sq), yloc + 2 * (hbox - sq) / 3, sq, sq)
+        context.rectangle(xloc + (wbox - sq) / 3, yloc, sq, sq)
+        context.rectangle(xloc + 2 * (wbox - sq) / 3, yloc, sq, sq)
+        context.rectangle(xloc, yloc + (hbox - sq) / 3, sq, sq)
+        context.rectangle(xloc, yloc + 2 * (hbox - sq) / 3, sq, sq)
+        context.fill()
+
     def draw(self, context):
         infra_list = self.battlefield["infrastructure"]
         for ix, (shape, *params) in enumerate(infra_list):
             assert shape in self.library["infrastructure"]            
-            if shape == "building-0": self.draw_building_0(context, params, ix)
+            if shape == "fortress-0": self.draw_fortress_0(context, params, ix)
+            elif shape == "building-0": self.draw_building_0(context, params, ix)
+            elif shape == "seeport-0": self.draw_seeport_0(context, params, ix)
+            elif shape == "seeport-1": self.draw_seeport_1(context, params, ix)
+            elif shape == "airport-0": self.draw_airport_0(context, params, ix)
             else: raise ValueError(f"Not supported shape: {shape}")
 
 class InfraGraph(TerrGraph):
@@ -117,7 +198,8 @@ class InfraWindow(TerrWindow):
             "F1": "navigation",
             "F2": "selection",
             "F3": "inserting",
-            "F4": "deleting"
+            "F4": "deleting",
+            "F5": "editing"
         }
     }
 
@@ -146,7 +228,7 @@ class InfraWindow(TerrWindow):
         oy = (int(event.y) - yoffset) / zoom
 
         if event.button == 1:
-            if self.check_mode("selection") or self.check_mode("deleting"):
+            if self.check_mode("selection", "deleting", "editing"):
                 selection = self.graph.check_infra(ox, oy)
                 if not self.app_controls["selection-add"]:
                     self.infra_painter.selected_infrastructure = selection
@@ -207,7 +289,7 @@ class InfraWindow(TerrWindow):
                 print(key, "-->", name)
             self.draw_content()
 
-        elif key_name in ["F1", "F2", "F3", "F4"]: 
+        elif key_name in self.app_controls["available-modes"]:
             mode = self.app_controls["available-modes"][key_name]
             self.app_controls["current-mode"] = mode
             print("##> mode", mode)
@@ -239,10 +321,44 @@ class InfraWindow(TerrWindow):
                 self.app_controls["selection-add"] = new_val
                 print("##> selection-add", new_val)
             else: print("Current mode does not support keys aA")
+
+        elif key_name == "Up" and self.check_mode("editing"):
+            if not self.infra_painter.selected_infrastructure:
+                print("no selected infrastructure...")
+            for infra in self.infra_painter.selected_infrastructure:
+                b, x, y, *params = self.battlefield["infrastructure"][infra]
+                y -= self.config["move-editing"]
+                self.battlefield["infrastructure"][infra] = b, x, y, *params
+            self.draw_content()
+        elif key_name == "Down" and self.check_mode("editing"):
+            if not self.infra_painter.selected_infrastructure:
+                print("no selected infrastructure...")
+            for infra in self.infra_painter.selected_infrastructure:
+                b, x, y, *params = self.battlefield["infrastructure"][infra]
+                y += self.config["move-editing"]
+                self.battlefield["infrastructure"][infra] = b, x, y, *params
+            self.draw_content()
+        elif key_name == "Left" and self.check_mode("editing"):
+            if not self.infra_painter.selected_infrastructure:
+                print("no selected infrastructure...")
+            for infra in self.infra_painter.selected_infrastructure:
+                b, x, y, *params = self.battlefield["infrastructure"][infra]
+                x -= self.config["move-editing"]
+                self.battlefield["infrastructure"][infra] = b, x, y, *params
+            self.draw_content()
+        elif key_name == "Right" and self.check_mode("editing"):
+            if not self.infra_painter.selected_infrastructure:
+                print("no selected infrastructure...")
+            for infra in self.infra_painter.selected_infrastructure:
+                b, x, y, *params = self.battlefield["infrastructure"][infra]
+                x += self.config["move-editing"]
+                self.battlefield["infrastructure"][infra] = b, x, y, *params
+            self.draw_content()
+                
         else: NaviWindow.on_press(self, widget, event)
 
-    def check_mode(self, mode):
-        return self.app_controls["current-mode"] == mode
+    def check_mode(self, *args):
+        return self.app_controls["current-mode"] in args
 
 def run_example():
     example_config = {
@@ -252,7 +368,8 @@ def run_example():
         "window-offset": (500, 100),
         "selection-color": (0.8, 0, 0.8),
         "selection-radius2": 9000,
-        "move-sensitive": 50
+        "move-sensitive": 50,
+        "move-editing": 1
     }
     
     from MapExamples import library0

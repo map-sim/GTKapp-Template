@@ -32,6 +32,30 @@ library0 = {
             "color": (0.3, 0.3, 0.3),
             "size": (100, 100),
             "shape": "box"
+        },
+        "seeport-0": {
+            "desc": "small see port",
+            "color": (0.3, 0.3, 0.3),
+            "size": (150, 150),
+            "shape": "box"
+        },
+        "seeport-1": {
+            "desc": "tiny see port",
+            "color": (0.3, 0.3, 0.3),
+            "size": (100, 100),
+            "shape": "box"
+        },
+        "airport-0": {
+            "desc": "air port",
+            "color": (0.3, 0.3, 0.3),
+            "size": (150, 150),
+            "shape": "box"
+        },
+        "fortress-0": {
+            "desc": "small fortress",
+            "color": (0.3, 0.3, 0.3),
+            "size": (80, 80),
+            "shape": "box"
         }
     }
 }
