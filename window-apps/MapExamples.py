@@ -30,7 +30,8 @@ library0 = {
         "building-0": {
             "desc": "small building",
             "color": (0.3, 0.3, 0.3),
-            "size": (100, 100)
+            "size": (100, 100),
+            "shape": "box"
         }
     }
 }

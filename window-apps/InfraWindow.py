@@ -60,8 +60,9 @@ class InfraPainter:
             else: raise ValueError(f"Not supported shape: {shape}")
 
 class InfraGraph(TerrGraph):
-    def __init__(self, config, battlefield):
+    def __init__(self, config, library, battlefield):
         self.battlefield = battlefield
+        self.library = library
         self.config = config
 
     def check_infra(self, xloc, yloc):
@@ -73,6 +74,35 @@ class InfraGraph(TerrGraph):
             if d2 < self.config["selection-radius2"]:
                 selection.add(ix)
         return selection
+
+    def boxbox_collision(self, size1, xy1, size2, xy2):
+        x1o, x1e = xy1[0] - size1[0]/2, xy1[0] + size1[0]/2        
+        x2o, x2e = xy2[0] - size2[0]/2, xy2[0] + size2[0]/2
+        y1o, y1e = xy1[1] - size1[1]/2, xy1[1] + size1[1]/2
+        y2o, y2e = xy2[1] - size2[1]/2, xy2[1] + size2[1]/2
+        xstatus = False
+        if x1o < x2o and x1o > x2e: xstatus = True
+        if x1e < x2o and x1e > x2e: xstatus = True
+        if x1o < x2e and x1o > x2o: xstatus = True
+        if x1e < x2e and x1e > x2o: xstatus = True
+        ystatus = False
+        if y1o < y2o and y1o > y2e: ystatus = True
+        if y1e < y2o and y1e > y2e: ystatus = True
+        if y1o < y2e and y1o > y2o: ystatus = True
+        if y1e < y2e and y1e > y2o: ystatus = True
+        return xstatus and ystatus
+        
+    def validate_infra_location(self, infra, xyloc):
+        shape_in  = self.library["infrastructure"][infra]["shape"]
+        size_in  = self.library["infrastructure"][infra]["size"]
+        for infr, x, y, *params in self.battlefield["infrastructure"]:
+            shape  = self.library["infrastructure"][infr]["shape"]
+            size  = self.library["infrastructure"][infr]["size"]
+            if shape == "box" and shape_in == "box":
+                coll = self.boxbox_collision(size_in, xyloc, size, (x, y))
+                if coll: return False
+            else: raise ValueError("unkown collision method!")
+        return True
 
 class MultiPainter(list):
     def draw(self, context):
@@ -95,7 +125,7 @@ class InfraWindow(TerrWindow):
         self.app_controls = copy.deepcopy(self.default_app_controls)        
         self.terr_painter = TerrPainter(config, library, battlefield)
         self.infra_painter = InfraPainter(config, library, battlefield)
-        self.graph = InfraGraph(config, battlefield)
+        self.graph = InfraGraph(config, library, battlefield)
         self.painter = MultiPainter()
         self.painter.append(self.terr_painter)
         self.painter.append(self.infra_painter)
@@ -106,7 +136,8 @@ class InfraWindow(TerrWindow):
         title = config["window-title"]
         width, height = config["window-size"]
         BaseWindow.__init__(self, title, width, height)
-        
+        print(f"Window {title} ready to work")
+
     def on_click(self, widget, event):
         xoffset, yoffset = self.config["window-offset"]
         width, height = self.config["window-size"]
@@ -126,14 +157,13 @@ class InfraWindow(TerrWindow):
             elif self.check_mode("inserting"):
                 buildlist = list(sorted(self.library["infrastructure"].keys()))
                 build = buildlist[self.app_controls["infra-num-to-add"]]
-
-                # TODO: validate x, y
-                insrow = (build, round(ox), round(oy), 1.0)
-                
-                self.battlefield["infrastructure"].append(insrow)
-                print("add infra", insrow)
-                self.draw_content()
-
+                xyro = round(ox), round(oy)
+                if self.graph.validate_infra_location(build, xyro):
+                    insrow = (build, *xyro, 1.0)
+                    self.battlefield["infrastructure"].append(insrow)
+                    print("add infra", insrow)
+                    self.draw_content()
+                else: print("Location colision!")
             else: print(f"({round(ox, 2)}, {round(oy, 2)}), ")
         elif event.button == 3:
             terr = self.graph.check_terrain(ox, oy)
@@ -173,6 +203,8 @@ class InfraWindow(TerrWindow):
             print("##> ESC - go back to default controls")
             self.app_controls = copy.deepcopy(self.default_app_controls)
             self.infra_painter.selected_infrastructure = set()
+            for key, name in self.app_controls["available-modes"].items():
+                print(key, "-->", name)
             self.draw_content()
 
         elif key_name in ["F1", "F2", "F3", "F4"]: 
@@ -191,7 +223,8 @@ class InfraWindow(TerrWindow):
                 self.app_controls["infra-num-to-add"] += 1
                 ilen = len(self.library["infrastructure"])
                 self.app_controls["infra-num-to-add"] %= ilen
-                print("infra:", self.app_controls["infra-num-to-add"])
+                bl = list(sorted(self.library["infrastructure"].keys()))
+                print("infra:", bl[self.app_controls["infra-num-to-add"]])
             else: print("Current mode does not support inserting")
             
         elif key_name == "Delete":
