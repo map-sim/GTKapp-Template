@@ -44,10 +44,6 @@ class InfraPainter:
         _, zoom, xloc1, yloc1, wbox1, hbox1 = outs1
         _, _, xloc2, yloc2, wbox2, hbox2 = outs2
 
-        # size = self.library["infrastructure"]["route-0"]["size"]
-        # d2 = (node1[1]-node2[1])**2 + (node1[2]-node2[2])**2
-        # assert size[0]**2 <= d2 <= size[1]**2
-
         color = self.library["infrastructure"]["route-0"]["color"]
         context.set_source_rgba(*color)
         context.set_line_width(zoom * 5.5)
@@ -172,7 +168,7 @@ class InfraGraph(TerrGraph):
         self.library = library
         self.config = config
 
-    def check_infra(self, xloc, yloc):
+    def find_infra(self, xloc, yloc):
         selection = set()
         infra_list = self.battlefield["infrastructure"]
         for ix, (shape, *params) in enumerate(infra_list):
@@ -183,6 +179,45 @@ class InfraGraph(TerrGraph):
                 selection.add(ix)
         return selection
 
+    def is_shape_line(self, shape):
+        if shape is None: return False
+        s = self.library["infrastructure"][shape]["shape"]
+        return s == "line"
+
+    def validate(self):
+        shape_flag, shape_list = True, []
+        infra_list = self.battlefield["infrastructure"]
+        for ix, (shape, *params) in enumerate(infra_list):
+            if shape not in self.library["infrastructure"]:
+                shape_list.append(ix)
+                shape_flag = False
+        if shape_flag: print("shapes: OK")
+        else: print("shapes: ERROR", shape_list)
+            
+        length_flag, length_list = True, []
+        infra_list = self.battlefield["infrastructure"]
+        for ix, (shape, *params) in enumerate(infra_list):
+            if not self.is_shape_line(shape): continue
+            size = self.library["infrastructure"][shape]["size"]
+            n1 = self.battlefield["infrastructure"][params[0]]
+            n2 = self.battlefield["infrastructure"][params[1]]
+            d2 = (n1[1]-n2[1])**2 + (n1[2]-n2[2])**2
+            if not (size[0]**2 <= d2 <= size[1]**2):
+                length_list.append(ix)
+                length_flag = False
+        if length_flag: print("route lengths: OK")
+        else: print("route lengths: ERROR", length_list)
+
+        collision_flag, collision_list = True, []
+        for ix, (shape, *params) in enumerate(infra_list):
+            if self.is_shape_line(shape): continue
+            if not self.validate_infra_location(shape, (params[0], params[1]), ix):
+                collision_list.append(ix)
+                collision_flag = False
+        if collision_flag: print("collisions: OK")
+        else: print("collisions: ERROR", collision_list)
+        return length_flag and collision_flag
+
     def boxbox_collision(self, size1, xy1, size2, xy2):
         x1o, x1e = xy1[0] - size1[0]/2, xy1[0] + size1[0]/2        
         x2o, x2e = xy2[0] - size2[0]/2, xy2[0] + size2[0]/2
@@ -191,34 +226,36 @@ class InfraGraph(TerrGraph):
 
         xstatus = False
 
-        if x1o <= x2o and x1o >= x2e: xstatus = True
-        if x1e <= x2o and x1e >= x2e: xstatus = True        
-        if x1o <= x2e and x1o >= x2o: xstatus = True
-        if x1e <= x2e and x1e >= x2o: xstatus = True
+        if x1o < x2o and x1o > x2e: xstatus = True
+        if x1e < x2o and x1e > x2e: xstatus = True        
+        if x1o < x2e and x1o > x2o: xstatus = True
+        if x1e < x2e and x1e > x2o: xstatus = True
 
-        if x2o <= x1o and x2o >= x1e: xstatus = True
-        if x2e <= x1o and x2e >= x1e: xstatus = True        
-        if x2o <= x1e and x2o >= x1o: xstatus = True
-        if x2e <= x1e and x2e >= x1o: xstatus = True
+        if x2o < x1o and x2o > x1e: xstatus = True
+        if x2e < x1o and x2e > x1e: xstatus = True        
+        if x2o < x1e and x2o > x1o: xstatus = True
+        if x2e < x1e and x2e > x1o: xstatus = True
 
         ystatus = False
         
-        if y1o <= y2o and y1o >= y2e: ystatus = True
-        if y1e <= y2o and y1e >= y2e: ystatus = True
-        if y1o <= y2e and y1o >= y2o: ystatus = True
-        if y1e <= y2e and y1e >= y2o: ystatus = True
+        if y1o < y2o and y1o > y2e: ystatus = True
+        if y1e < y2o and y1e > y2e: ystatus = True
+        if y1o < y2e and y1o > y2o: ystatus = True
+        if y1e < y2e and y1e > y2o: ystatus = True
 
-        if y2o <= y1o and y2o >= y1e: ystatus = True
-        if y2e <= y1o and y2e >= y1e: ystatus = True
-        if y2o <= y1e and y2o >= y1o: ystatus = True
-        if y2e <= y1e and y2e >= y1o: ystatus = True
+        if y2o < y1o and y2o > y1e: ystatus = True
+        if y2e < y1o and y2e > y1e: ystatus = True
+        if y2o < y1e and y2o > y1o: ystatus = True
+        if y2e < y1e and y2e > y1o: ystatus = True
 
         return xstatus and ystatus
         
-    def validate_infra_location(self, infra, xyloc):
+    def validate_infra_location(self, infra, xyloc, optional_index=None):
         shape_in  = self.library["infrastructure"][infra]["shape"]
         size_in  = self.library["infrastructure"][infra]["size"]
-        for infr, x, y, *params in self.battlefield["infrastructure"]:
+        infra_list = self.battlefield["infrastructure"]
+        for ix, (infr, x, y, *params) in enumerate(infra_list):
+            if optional_index == ix: continue
             if infr is None: continue
             shape  = self.library["infrastructure"][infr]["shape"]
             size  = self.library["infrastructure"][infr]["size"]
@@ -252,6 +289,8 @@ class InfraWindow(TerrWindow):
         self.terr_painter = TerrPainter(config, library, battlefield)
         self.infra_painter = InfraPainter(config, library, battlefield)
         self.graph = InfraGraph(config, library, battlefield)
+        self.graph.validate()
+
         self.painter = MultiPainter()
         self.painter.append(self.terr_painter)
         self.painter.append(self.infra_painter)
@@ -273,7 +312,7 @@ class InfraWindow(TerrWindow):
 
         if event.button == 1:
             if self.check_mode("selection", "deleting", "editing"):
-                selection = self.graph.check_infra(ox, oy)
+                selection = self.graph.find_infra(ox, oy)
                 if not self.app_controls["selection-add"]:
                     self.infra_painter.selected_infrastructure = selection
                 else: self.infra_painter.selected_infrastructure |= selection
@@ -306,7 +345,7 @@ class InfraWindow(TerrWindow):
             print(f"delete infrastructure element: {di}...")
             self.battlefield["infrastructure"][ix] = None, None, None
             for i, params in enumerate(self.battlefield["infrastructure"]):
-                if not self.is_shape_line(params[0]): continue
+                if not self.graph.is_shape_line(params[0]): continue
                 if params[1] == ix or params[2] == ix:
                     self.battlefield["infrastructure"][i] = None, None, None
         self.infra_painter.selected_infrastructure = set()
@@ -327,11 +366,6 @@ class InfraWindow(TerrWindow):
         print(f"save {outlib}")
         with open(outlib, "w") as fd:
             json.dump(self.library, fd)
-
-    def is_shape_line(self, shape):
-        if shape is None: return False
-        s = self.library["infrastructure"][shape]["shape"]
-        return s == "line"
 
     def on_press(self, widget, event):
         key_name = Gdk.keyval_name(event.keyval)
@@ -355,6 +389,12 @@ class InfraWindow(TerrWindow):
                 print("##> save")
                 self.save_map("outlib", "outfield")
             else: print("Current mode does not support keys sS")
+
+        elif key_name in "vV":
+            if self.check_mode("navigation"):
+                print("##> validate")
+                self.graph.validate()
+            else: print("Current mode does not support keys vV")
 
         elif key_name == "Insert":
             if self.check_mode("inserting", "editing"):
