@@ -22,7 +22,7 @@ class InfraPainter:
         self.library = library
         self.config = config
 
-    def get_infrastructure_params(self, name, xloc, yloc, *args):
+    def get_infrastructure_params(self, index, name, xloc, yloc, *args):
         color = self.library["infrastructure"][name]["color"]
         wbox, hbox = self.library["infrastructure"][name]["size"]
         xoffset, yoffset = self.config["window-offset"]
@@ -30,15 +30,45 @@ class InfraPainter:
         xloc, yloc = xloc*zoom, yloc*zoom
         xloc, yloc = xloc + xoffset, yloc + yoffset
         wbox, hbox = wbox*zoom, hbox*zoom
-        return color, zoom, xloc, yloc, wbox, hbox
-
-    def draw_building_0(self, context, params, index):
-        outs = self.get_infrastructure_params("building-0", *params)
-        color, zoom, xloc, yloc, wbox, hbox = outs
         if index in self.selected_infrastructure:
             color = self.config["selection-color"]
         xloc =  xloc - wbox / 2
         yloc =  yloc - hbox / 2
+        return color, zoom, xloc, yloc, wbox, hbox
+
+    def draw_route_0(self, context, params, index):
+        node1 = self.battlefield["infrastructure"][params[0]]
+        node2 = self.battlefield["infrastructure"][params[1]]
+        outs1 = self.get_infrastructure_params(index, *node1)
+        outs2 = self.get_infrastructure_params(index, *node2)
+        _, zoom, xloc1, yloc1, wbox1, hbox1 = outs1
+        _, _, xloc2, yloc2, wbox2, hbox2 = outs2
+
+        # size = self.library["infrastructure"]["route-0"]["size"]
+        # d2 = (node1[1]-node2[1])**2 + (node1[2]-node2[2])**2
+        # assert size[0]**2 <= d2 <= size[1]**2
+
+        color = self.library["infrastructure"]["route-0"]["color"]
+        context.set_source_rgba(*color)
+        context.set_line_width(zoom * 5.5)
+        context.move_to(xloc1 + wbox1/2, yloc1 + hbox1/2)
+        context.line_to(xloc2 + wbox2/2, yloc2 + hbox2/2) 
+        context.stroke()
+
+    def draw_node_0(self, context, params, index):
+        outs = self.get_infrastructure_params(index, "node-0", *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
+        xloc =  xloc + wbox / 2
+        yloc =  yloc + hbox / 2
+
+        r = wbox/5 + hbox/5
+        context.set_source_rgba(*color)
+        context.arc(xloc, yloc, r, 0, 2 * math.pi)
+        context.fill()
+
+    def draw_building_0(self, context, params, index):
+        outs = self.get_infrastructure_params(index, "building-0", *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
 
         context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, wbox, 5*zoom)
@@ -53,12 +83,8 @@ class InfraPainter:
         context.fill()
 
     def draw_seeport_0(self, context, params, index):
-        outs = self.get_infrastructure_params("seeport-0", *params)
+        outs = self.get_infrastructure_params(index, "seeport-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        if index in self.selected_infrastructure:
-            color = self.config["selection-color"]
-        xloc =  xloc - wbox / 2
-        yloc =  yloc - hbox / 2
 
         context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, wbox, 5*zoom)
@@ -71,12 +97,8 @@ class InfraPainter:
         context.fill()
 
     def draw_seeport_1(self, context, params, index):
-        outs = self.get_infrastructure_params("seeport-1", *params)
+        outs = self.get_infrastructure_params(index, "seeport-1", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        if index in self.selected_infrastructure:
-            color = self.config["selection-color"]
-        xloc =  xloc - wbox / 2
-        yloc =  yloc - hbox / 2
 
         context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, wbox, 5*zoom)
@@ -89,12 +111,8 @@ class InfraPainter:
         context.fill()
 
     def draw_airport_0(self, context, params, index):
-        outs = self.get_infrastructure_params("seeport-0", *params)
+        outs = self.get_infrastructure_params(index, "seeport-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        if index in self.selected_infrastructure:
-            color = self.config["selection-color"]
-        xloc =  xloc - wbox / 2
-        yloc =  yloc - hbox / 2
 
         context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, wbox, 5*zoom)
@@ -106,12 +124,8 @@ class InfraPainter:
         context.fill()
 
     def draw_fortress_0(self, context, params, index):
-        outs = self.get_infrastructure_params("fortress-0", *params)
+        outs = self.get_infrastructure_params(index, "fortress-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        if index in self.selected_infrastructure:
-            color = self.config["selection-color"]
-        xloc =  xloc - wbox / 2
-        yloc =  yloc - hbox / 2
 
         sq = 10*zoom
         context.set_source_rgba(*color)
@@ -130,16 +144,28 @@ class InfraPainter:
         context.fill()
 
     def draw(self, context):
+        routes_tmp_list, nodes_tmp_list = [], []
         infra_list = self.battlefield["infrastructure"]
         for ix, (shape, *params) in enumerate(infra_list):
-            assert shape in self.library["infrastructure"]            
+            if shape is None: continue
+            assert shape in self.library["infrastructure"]
+            if self.library["infrastructure"][shape]["shape"] == "line":
+                routes_tmp_list.append((ix, (shape, *params)))
+            else: nodes_tmp_list.append((ix, (shape, *params)))
+
+        for ix, (shape, *params) in routes_tmp_list:
+            if shape == "route-0": self.draw_route_0(context, params, ix)
+            else: raise ValueError(f"Not supported line shape: {shape}")
+
+        for ix, (shape, *params) in nodes_tmp_list:
             if shape == "fortress-0": self.draw_fortress_0(context, params, ix)
             elif shape == "building-0": self.draw_building_0(context, params, ix)
             elif shape == "seeport-0": self.draw_seeport_0(context, params, ix)
             elif shape == "seeport-1": self.draw_seeport_1(context, params, ix)
             elif shape == "airport-0": self.draw_airport_0(context, params, ix)
-            else: raise ValueError(f"Not supported shape: {shape}")
-
+            elif shape == "node-0": self.draw_node_0(context, params, ix)
+            else: raise ValueError(f"Not supported node shape: {shape}")
+        
 class InfraGraph(TerrGraph):
     def __init__(self, config, library, battlefield):
         self.battlefield = battlefield
@@ -150,6 +176,7 @@ class InfraGraph(TerrGraph):
         selection = set()
         infra_list = self.battlefield["infrastructure"]
         for ix, (shape, *params) in enumerate(infra_list):
+            if shape is None: continue
             xo, yo, *other = params
             d2 = (xloc-xo)**2 + (yloc-yo)**2
             if d2 < self.config["selection-radius2"]:
@@ -161,27 +188,44 @@ class InfraGraph(TerrGraph):
         x2o, x2e = xy2[0] - size2[0]/2, xy2[0] + size2[0]/2
         y1o, y1e = xy1[1] - size1[1]/2, xy1[1] + size1[1]/2
         y2o, y2e = xy2[1] - size2[1]/2, xy2[1] + size2[1]/2
+
         xstatus = False
-        if x1o < x2o and x1o > x2e: xstatus = True
-        if x1e < x2o and x1e > x2e: xstatus = True
-        if x1o < x2e and x1o > x2o: xstatus = True
-        if x1e < x2e and x1e > x2o: xstatus = True
+
+        if x1o <= x2o and x1o >= x2e: xstatus = True
+        if x1e <= x2o and x1e >= x2e: xstatus = True        
+        if x1o <= x2e and x1o >= x2o: xstatus = True
+        if x1e <= x2e and x1e >= x2o: xstatus = True
+
+        if x2o <= x1o and x2o >= x1e: xstatus = True
+        if x2e <= x1o and x2e >= x1e: xstatus = True        
+        if x2o <= x1e and x2o >= x1o: xstatus = True
+        if x2e <= x1e and x2e >= x1o: xstatus = True
+
         ystatus = False
-        if y1o < y2o and y1o > y2e: ystatus = True
-        if y1e < y2o and y1e > y2e: ystatus = True
-        if y1o < y2e and y1o > y2o: ystatus = True
-        if y1e < y2e and y1e > y2o: ystatus = True
+        
+        if y1o <= y2o and y1o >= y2e: ystatus = True
+        if y1e <= y2o and y1e >= y2e: ystatus = True
+        if y1o <= y2e and y1o >= y2o: ystatus = True
+        if y1e <= y2e and y1e >= y2o: ystatus = True
+
+        if y2o <= y1o and y2o >= y1e: ystatus = True
+        if y2e <= y1o and y2e >= y1e: ystatus = True
+        if y2o <= y1e and y2o >= y1o: ystatus = True
+        if y2e <= y1e and y2e >= y1o: ystatus = True
+
         return xstatus and ystatus
         
     def validate_infra_location(self, infra, xyloc):
         shape_in  = self.library["infrastructure"][infra]["shape"]
         size_in  = self.library["infrastructure"][infra]["size"]
         for infr, x, y, *params in self.battlefield["infrastructure"]:
+            if infr is None: continue
             shape  = self.library["infrastructure"][infr]["shape"]
             size  = self.library["infrastructure"][infr]["size"]
-            if shape == "box" and shape_in == "box":
+            if shape == shape_in == "box":
                 coll = self.boxbox_collision(size_in, xyloc, size, (x, y))
                 if coll: return False
+            elif "line" in [shape, shape_in]: continue
             else: raise ValueError("unkown collision method!")
         return True
 
@@ -257,9 +301,14 @@ class InfraWindow(TerrWindow):
             print("No infra selected...")
             return
 
-        for ix in reversed(sorted(self.infra_painter.selected_infrastructure)):
-            di = self.battlefield["infrastructure"].pop(ix)
+        for ix in self.infra_painter.selected_infrastructure:
+            di = self.battlefield["infrastructure"][ix]
             print(f"delete infrastructure element: {di}...")
+            self.battlefield["infrastructure"][ix] = None, None, None
+            for i, params in enumerate(self.battlefield["infrastructure"]):
+                if not self.is_shape_line(params[0]): continue
+                if params[1] == ix or params[2] == ix:
+                    self.battlefield["infrastructure"][i] = None, None, None
         self.infra_painter.selected_infrastructure = set()
         self.draw_content()
         
@@ -279,10 +328,17 @@ class InfraWindow(TerrWindow):
         with open(outlib, "w") as fd:
             json.dump(self.library, fd)
 
+    def is_shape_line(self, shape):
+        if shape is None: return False
+        s = self.library["infrastructure"][shape]["shape"]
+        return s == "line"
+
     def on_press(self, widget, event):
         key_name = Gdk.keyval_name(event.keyval)
         if key_name == "Escape":
             print("##> ESC - go back to default controls")
+            print("terrian parts:", len(self.battlefield["terrains"]))
+            print("infra parts:", len(self.battlefield["infrastructure"]))
             self.app_controls = copy.deepcopy(self.default_app_controls)
             self.infra_painter.selected_infrastructure = set()
             for key, name in self.app_controls["available-modes"].items():
@@ -301,7 +357,7 @@ class InfraWindow(TerrWindow):
             else: print("Current mode does not support keys sS")
 
         elif key_name == "Insert":
-            if self.check_mode("inserting"):
+            if self.check_mode("inserting", "editing"):
                 self.app_controls["infra-num-to-add"] += 1
                 ilen = len(self.library["infrastructure"])
                 self.app_controls["infra-num-to-add"] %= ilen
@@ -316,11 +372,32 @@ class InfraWindow(TerrWindow):
             else: print("Current mode does not support deleting")
 
         elif key_name in "aA":
-            if self.check_mode("selection"):
+            if self.check_mode("selection", "editing"):
                 new_val = not self.app_controls["selection-add"]
                 self.app_controls["selection-add"] = new_val
                 print("##> selection-add", new_val)
             else: print("Current mode does not support keys aA")
+
+        elif key_name in "cC":
+            if self.check_mode("editing", "inserting"):
+                buildlist = list(sorted(self.library["infrastructure"].keys()))
+                build = buildlist[self.app_controls["infra-num-to-add"]]
+                shape = self.library["infrastructure"][build]["shape"]
+                if shape != "line": print("##> cannot connect - no line!")
+                elif len(self.infra_painter.selected_infrastructure) == 2:
+                    n1, n2 = list(self.infra_painter.selected_infrastructure)
+                    connect, itemrow = True, (build, n1, n2, 1.0)
+                    for b, j1, j2, *params in self.battlefield["infrastructure"]:
+                        if self.library["infrastructure"][b]["shape"] == "line":
+                            if (j1 == n1 and j2 == n2) or (j1 == n2 and j2 == n1):
+                                connect = False
+                    if connect:
+                        self.battlefield["infrastructure"].append(itemrow)
+                        print("##> connect", n1, n2)
+                        self.draw_content()
+                    else: print("##> cannot connect - connection exists?")
+                else: print("##> cannot connect - no 2 items selected!")
+            else: print("Current mode does not support keys cC")
 
         elif key_name == "Up" and self.check_mode("editing"):
             if not self.infra_painter.selected_infrastructure:
@@ -367,9 +444,9 @@ def run_example():
         "window-size": (1800, 820),
         "window-offset": (500, 100),
         "selection-color": (0.8, 0, 0.8),
-        "selection-radius2": 9000,
+        "selection-radius2": 2500,
         "move-sensitive": 50,
-        "move-editing": 1
+        "move-editing": 2
     }
     
     from MapExamples import library0

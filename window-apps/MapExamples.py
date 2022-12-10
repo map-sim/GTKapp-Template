@@ -56,7 +56,20 @@ library0 = {
             "color": (0.3, 0.3, 0.3),
             "size": (80, 80),
             "shape": "box"
+        },
+        "node-0": {
+            "desc": "routing node",
+            "color": (0.3, 0.3, 0.3),
+            "size": (40, 40),
+            "shape": "box"
+        },
+        "route-0": {
+            "desc": "ground route",
+            "color": (0.3, 0.3, 0.3),
+            "size": (50, 150),
+            "shape": "line"
         }
+
     }
 }
 
@@ -64,7 +77,12 @@ battlefield0 = {
     "infrastructure": [
         ("building-0", 1200, 600, 1.0),
         ("building-0", 1250, 700, 1.0),
-        ("building-0", 400, 900, 1.0)
+        ("building-0", 400, 900, 1.0),
+        ("node-0", 320, 1000, 1.0),
+        ("node-0", 320, 1100, 1.0),
+	("fortress-0", 518, 1332, 1.0),
+        ("route-0", 2, 3, 1.0),        
+        ("route-0", 3, 4, 1.0)
     ],
     "terrains": [
         ("base", "water-1"),
