@@ -93,6 +93,24 @@ class InfraPainter:
         context.rectangle(xloc+65*zoom, yloc+65*zoom, 20*zoom, 20*zoom)
         context.fill()
 
+    def draw_building_1(self, context, params, index):
+        outs = self.get_infrastructure_params(index, "building-1", *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
+        self.draw_bg(context, xloc, yloc, wbox, hbox)
+
+        context.set_source_rgba(*color)
+        context.rectangle(xloc, yloc, wbox, 5*zoom)
+        context.rectangle(xloc, yloc+hbox-5*zoom, wbox, 5*zoom)
+        context.rectangle(xloc, yloc, 5*zoom, hbox)
+        context.rectangle(xloc+wbox-5*zoom, yloc, 5*zoom, hbox)
+        context.rectangle(xloc+15*zoom, yloc+15*zoom, 25*zoom, 25*zoom)
+        context.rectangle(xloc+15*zoom, yloc+45*zoom, 25*zoom, 25*zoom)
+        context.rectangle(xloc+45*zoom, yloc+15*zoom, 25*zoom, 25*zoom)
+        context.rectangle(xloc+45*zoom, yloc+45*zoom, 25*zoom, 25*zoom)
+        context.rectangle(xloc+85*zoom, yloc+15*zoom, 25*zoom, 25*zoom)
+        context.rectangle(xloc+85*zoom, yloc+45*zoom, 25*zoom, 25*zoom)
+        context.fill()
+
     def draw_seeport_0(self, context, params, index):
         outs = self.get_infrastructure_params(index, "seeport-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
@@ -176,6 +194,7 @@ class InfraPainter:
         for ix, (shape, *params) in nodes_tmp_list:
             if shape == "fortress-0": self.draw_fortress_0(context, params, ix)
             elif shape == "building-0": self.draw_building_0(context, params, ix)
+            elif shape == "building-1": self.draw_building_1(context, params, ix)
             elif shape == "seeport-0": self.draw_seeport_0(context, params, ix)
             elif shape == "seeport-1": self.draw_seeport_1(context, params, ix)
             elif shape == "airport-0": self.draw_airport_0(context, params, ix)
@@ -188,6 +207,22 @@ class InfraGraph(TerrGraph):
         self.battlefield = battlefield
         self.library = library
         self.config = config
+ 
+    def clean_null_infra(self):
+        infra_list = self.battlefield["infrastructure"]
+        new_infra_list = copy.deepcopy(infra_list)
+        for ix, (shape, *params) in enumerate(infra_list):
+            if shape is not None: continue
+            for jx, (sh0, n1, n2, *p) in enumerate(infra_list):
+                if not self.is_shape_line(sh0): continue
+                if n1 > ix: new_infra_list[jx][1] -= 1
+                if n2 > ix: new_infra_list[jx][2] -= 1
+        for ix in reversed(range(len(new_infra_list))):
+            if new_infra_list[ix][0] is None:
+                del new_infra_list[ix]
+        self.battlefield["infrastructure"] = new_infra_list
+        removed = len(infra_list) - len(new_infra_list)
+        print("Removed empty rows:", removed)
 
     def find_infra(self, xloc, yloc):
         selection = set()
@@ -451,9 +486,8 @@ class InfraWindow(TerrWindow):
             if self.check_mode("navigation", "inserting", "editing"):
                 print("##> validate")
                 selection = self.graph.validate()
-                if selection:
-                    self.infra_painter.selected_infrastructure = selection
-                    self.draw_content()
+                self.infra_painter.selected_infrastructure = selection
+                self.draw_content()
             else: print("Current mode does not support keys vV")
 
         elif key_name == "Insert":
@@ -471,6 +505,12 @@ class InfraWindow(TerrWindow):
                 self.delete_selection()
             else: print("Current mode does not support deleting")
 
+        elif key_name in "qQ":
+            if self.check_mode("deleting"):
+                print("##> clean")
+                self.graph.clean_null_infra()
+            else: print("Current mode does not support keys qQ")
+    
         elif key_name in "aA":
             if self.check_mode("selection", "editing"):
                 new_val = not self.app_controls["selection-add"]
