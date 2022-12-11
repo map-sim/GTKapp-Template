@@ -532,6 +532,7 @@ class InfraWindow(TerrWindow):
                     it = next(iter(self.infra_painter.selected_infrastructure))
                     self.infra_painter.selected_infrastructure = {it}
                     self.draw_content()
+                print("##> selection-reduce")
             else: print("Current mode does not support keys oO")
 
         elif key_name in "cC":
