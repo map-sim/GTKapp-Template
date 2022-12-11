@@ -63,13 +63,24 @@ library0 = {
             "size": (40, 40),
             "shape": "box"
         },
+        "node-1": {
+            "desc": "routing node",
+            "color": (0.3, 0.3, 0.3),
+            "size": (50, 50),
+            "shape": "box"
+        },
         "route-0": {
             "desc": "ground route",
             "color": (0.3, 0.3, 0.3),
-            "size": (50, 150),
+            "size": (50, 200),
+            "shape": "line"
+        },
+        "route-1": {
+            "desc": "ground route",
+            "color": (0.3, 0.3, 0.3),
+            "size": (50, 155),
             "shape": "line"
         }
-
     }
 }
 
