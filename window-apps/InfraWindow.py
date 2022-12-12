@@ -207,7 +207,7 @@ class InfraGraph(TerrGraph):
         self.battlefield = battlefield
         self.library = library
         self.config = config
- 
+
     def clean_null_infra(self):
         infra_list = self.battlefield["infrastructure"]
         new_infra_list = copy.deepcopy(infra_list)
@@ -334,6 +334,7 @@ class MultiPainter(list):
         for item in self: item.draw(context)
 
 class InfraWindow(TerrWindow):
+    version = 0
     default_app_controls = {
         "infra-num-to-add": 0,
         "selection-add": False,
@@ -349,6 +350,15 @@ class InfraWindow(TerrWindow):
     }
 
     def __init__(self, config, library, battlefield):
+        assert self.version == battlefield["version"]
+        assert self.version == library["version"]
+        assert self.version == config["version"]
+
+        self.config = config
+        self.library = library
+        self.battlefield = battlefield
+        self.fix_battlefield_infrastructure()
+
         self.app_controls = copy.deepcopy(self.default_app_controls)        
         self.terr_painter = TerrPainter(config, library, battlefield)
         self.infra_painter = InfraPainter(config, library, battlefield)
@@ -358,14 +368,25 @@ class InfraWindow(TerrWindow):
         self.painter = MultiPainter()
         self.painter.append(self.terr_painter)
         self.painter.append(self.infra_painter)
-        self.battlefield = battlefield
-        self.library = library
-        self.config = config
 
         title = config["window-title"]
         width, height = config["window-size"]
         BaseWindow.__init__(self, title, width, height)
         print(f"Window {title} ready to work")
+
+    def fix_battlefield_infrastructure(self):
+        length = len(self.library["resources"])
+
+        new_infra_list = []
+        infra_list = self.battlefield["infrastructure"]
+        for shape, *params in infra_list:
+            new_row = [shape, params[0], params[1]]
+            new_row += [1.0] + [0.0] * length
+            for j, p in enumerate(new_row):
+                if j > 2: new_row[j] = float(p)
+                else: new_row[j] = p
+            new_infra_list.append(new_row)
+        self.battlefield["infrastructure"] = new_infra_list
 
     def on_click(self, widget, event):
         xoffset, yoffset = self.config["window-offset"]
@@ -597,6 +618,7 @@ class InfraWindow(TerrWindow):
 
 def run_example():
     example_config = {
+        "version": 0,
         "window-title": "infra-window",
         "window-zoom": 0.0366,
         "window-size": (1800, 820),
