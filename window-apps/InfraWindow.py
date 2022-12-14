@@ -81,6 +81,25 @@ class InfraPainter:
         self.draw_node(context, params, index, 0.12)
     def draw_node_1(self, context, params, index):
         self.draw_node(context, params, index, 0.3)
+
+    def draw_cross(self, context, xloc, yloc, dw, dh):
+        context.move_to(xloc - dw, yloc)
+        context.line_to(xloc + dw, yloc) 
+        context.move_to(xloc, yloc - dh)
+        context.line_to(xloc, yloc + dh) 
+        context.stroke()
+        
+    def draw_minefield_0(self, context, params, index):
+        outs = self.get_infrastructure_params(index, "minefield-0", *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
+
+        context.set_source_rgba(*color)
+        context.set_line_width(zoom * 3)
+        self.draw_cross(context, xloc+wbox/2, yloc+hbox/2, wbox/6, hbox/6)
+        self.draw_cross(context, xloc+3*wbox/4, yloc+3*hbox/4, wbox/6, hbox/6)
+        self.draw_cross(context, xloc+1*wbox/4, yloc+3*hbox/4, wbox/6, hbox/6)
+        self.draw_cross(context, xloc+3*wbox/4, yloc+1*hbox/4, wbox/6, hbox/6)
+        self.draw_cross(context, xloc+1*wbox/4, yloc+1*hbox/4, wbox/6, hbox/6)
         
     def draw_building_0(self, context, params, index):
         outs = self.get_infrastructure_params(index, "building-0", *params)
@@ -201,6 +220,7 @@ class InfraPainter:
             if shape == "fortress-0": self.draw_fortress_0(context, params, ix)
             elif shape == "building-0": self.draw_building_0(context, params, ix)
             elif shape == "building-1": self.draw_building_1(context, params, ix)
+            elif shape == "minefield-0": self.draw_minefield_0(context, params, ix)
             elif shape == "seeport-0": self.draw_seeport_0(context, params, ix)
             elif shape == "seeport-1": self.draw_seeport_1(context, params, ix)
             elif shape == "airport-0": self.draw_airport_0(context, params, ix)
