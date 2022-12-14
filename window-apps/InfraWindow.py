@@ -95,7 +95,7 @@ class InfraPainter:
 
         context.set_source_rgba(*color)
         context.set_line_width(zoom * 3)
-        self.draw_cross(context, xloc+wbox/2, yloc+hbox/2, wbox/6, hbox/6)
+        #self.draw_cross(context, xloc+wbox/2, yloc+hbox/2, wbox/6, hbox/6)
         self.draw_cross(context, xloc+3*wbox/4, yloc+3*hbox/4, wbox/6, hbox/6)
         self.draw_cross(context, xloc+1*wbox/4, yloc+3*hbox/4, wbox/6, hbox/6)
         self.draw_cross(context, xloc+3*wbox/4, yloc+1*hbox/4, wbox/6, hbox/6)
