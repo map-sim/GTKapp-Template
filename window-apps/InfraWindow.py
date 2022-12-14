@@ -36,10 +36,14 @@ class InfraPainter:
         xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
         return color, zoom, xloc, yloc, wbox, hbox
 
-    def draw_bg(self, context, xloc, yloc, wbox, hbox):
-        if not self.background_flag: return
-        context.set_source_rgba(1, 1, 1)
-        context.rectangle(xloc, yloc, wbox, hbox)
+    def draw_bg(self, context, xloc, yloc, wbox=None, hbox=None, radius=None):
+        if not self.background_flag:
+            context.set_source_rgba(0, 1, 0)
+        else: context.set_source_rgba(1, 1, 1)
+
+        if radius is None:
+            context.rectangle(xloc, yloc, wbox, hbox)
+        else: context.arc(xloc, yloc, radius, 0, 2 * math.pi)
         context.fill()
         
     def draw_route(self, context, params, index, width):
@@ -70,6 +74,8 @@ class InfraPainter:
         context.set_source_rgba(*color)
         context.arc(xloc, yloc, r, 0, 2 * math.pi)
         context.fill()
+        r -= 4.55 * zoom 
+        self.draw_bg(context, xloc, yloc, radius=r)
 
     def draw_node_0(self, context, params, index):
         self.draw_node(context, params, index, 0.12)
