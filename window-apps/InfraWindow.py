@@ -15,11 +15,12 @@ from gi.repository import Gtk
 gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk
             
+
 class InfraPainter:
     def __init__(self, config, library, battlefield):
         self.selected_infrastructure = set()
-        self.background_flag = True
         self.battlefield = battlefield
+        self.object_flag = "infra"
         self.library = library
         self.config = config
 
@@ -33,19 +34,51 @@ class InfraPainter:
         wbox, hbox = wbox * zoom, hbox * zoom
         if index in self.selected_infrastructure:
             color = self.config["selection-color"]
-        xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
         return color, zoom, xloc, yloc, wbox, hbox
 
-    def draw_bg(self, context, xloc, yloc, wbox=None, hbox=None, radius=None):
-        if not self.background_flag:
-            context.set_source_rgba(0, 1, 0)
-        else: context.set_source_rgba(1, 1, 1)
+    def draw_rplot(self, context, name, xloc, yloc, params):
+        if self.object_flag == "infra": return False
+        if self.object_flag == "route": return True
 
-        if radius is None:
-            context.rectangle(xloc, yloc, wbox, hbox)
-        else: context.arc(xloc, yloc, radius, 0, 2 * math.pi)
-        context.fill()
+        irow = self.library["infrastructure"][name]
+        if self.object_flag == "solid": capacity = irow["space"]
+        elif self.object_flag == "liquid": capacity = irow["volume"]
+        else: raise ValueError("state")
+        if capacity == 0: return True
         
+        csq = math.sqrt(capacity)
+        zoom = math.sqrt(self.config["window-zoom"])
+        radius = self.config["plot-radius-scale"] * zoom * csq
+        radius1 = self.config["plot-radius-scale"] * zoom * csq + 1.5 * zoom
+        context.set_source_rgba(0, 0, 0)
+        context.arc(xloc, yloc, radius1, 0, 2 * math.pi)
+        context.fill()
+        context.set_source_rgba(1, 1, 1)
+        context.arc(xloc, yloc, radius, 0, 2 * math.pi)
+        context.fill()
+
+        a0 = 0
+        for i, v in enumerate(params[3:]):
+            if v > 0: print(v / capacity)
+            state = self.library["resources"][i][2]
+            if state != self.object_flag: continue
+            a1 = 2 * math.pi * v / capacity
+            if v > 0: print(a0, a1)
+            color = self.library["resources"][i][3]
+            context.set_source_rgba(*color)
+            context.line_to (xloc, yloc);
+            context.arc(xloc, yloc, radius, a0, a0+a1)
+            context.line_to (xloc, yloc);
+            context.fill()
+            a0 += a1
+        return True
+
+    def draw_bg(self, context, xloc, yloc, wbox=None, hbox=None, radius=None):
+        if radius is None: context.rectangle(xloc, yloc, wbox, hbox)
+        else: context.arc(xloc, yloc, radius, 0, 2 * math.pi)
+        context.set_source_rgba(1, 1, 1)
+        context.fill()
+
     def draw_route(self, context, params, index, width):
         node1 = self.battlefield["infrastructure"][params[0]]
         node2 = self.battlefield["infrastructure"][params[1]]
@@ -57,8 +90,8 @@ class InfraPainter:
         color = self.library["infrastructure"]["route-0"]["color"]
         context.set_source_rgba(*color)
         context.set_line_width(zoom * width)
-        context.move_to(xloc1 + wbox1/2, yloc1 + hbox1/2)
-        context.line_to(xloc2 + wbox2/2, yloc2 + hbox2/2) 
+        context.move_to(xloc1, yloc1)
+        context.line_to(xloc2, yloc2) 
         context.stroke()
 
     def draw_route_0(self, context, params, index):
@@ -66,10 +99,12 @@ class InfraPainter:
     def draw_route_1(self, context, params, index):
         self.draw_route(context, params, index, 12)
         
-    def draw_node(self, context, params, index, radius_factor):
-        outs = self.get_infrastructure_params(index, "node-0", *params)
+    def draw_node(self, context, name, params, index, radius_factor):
+        outs = self.get_infrastructure_params(index, name, *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        xloc, yloc =  xloc + wbox / 2, yloc + hbox / 2
+        # xloc, yloc =  xloc + wbox / 2, yloc + hbox / 2
+        if self.draw_rplot(context, name, xloc, yloc, params): return
+
         r = (wbox + hbox) * radius_factor
         context.set_source_rgba(*color)
         context.arc(xloc, yloc, r, 0, 2 * math.pi)
@@ -78,9 +113,9 @@ class InfraPainter:
         self.draw_bg(context, xloc, yloc, radius=r)
 
     def draw_node_0(self, context, params, index):
-        self.draw_node(context, params, index, 0.12)
+        self.draw_node(context, "node-0", params, index, 0.12)
     def draw_node_1(self, context, params, index):
-        self.draw_node(context, params, index, 0.3)
+        self.draw_node(context, "node-1", params, index, 0.3)
 
     def draw_cross(self, context, xloc, yloc, dw, dh):
         context.move_to(xloc - dw, yloc)
@@ -92,10 +127,11 @@ class InfraPainter:
     def draw_minefield_0(self, context, params, index):
         outs = self.get_infrastructure_params(index, "minefield-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
+        if self.object_flag != "infra": return
 
+        xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
         context.set_source_rgba(*color)
         context.set_line_width(zoom * 3)
-        #self.draw_cross(context, xloc+wbox/2, yloc+hbox/2, wbox/6, hbox/6)
         self.draw_cross(context, xloc+3*wbox/4, yloc+3*hbox/4, wbox/6, hbox/6)
         self.draw_cross(context, xloc+1*wbox/4, yloc+3*hbox/4, wbox/6, hbox/6)
         self.draw_cross(context, xloc+3*wbox/4, yloc+1*hbox/4, wbox/6, hbox/6)
@@ -104,8 +140,10 @@ class InfraPainter:
     def draw_building_0(self, context, params, index):
         outs = self.get_infrastructure_params(index, "building-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        self.draw_bg(context, xloc, yloc, wbox, hbox)
+        if self.draw_rplot(context, "building-0", xloc, yloc, params): return
 
+        xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
+        self.draw_bg(context, xloc, yloc, wbox, hbox)
         context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, wbox, 5*zoom)
         context.rectangle(xloc, yloc+hbox-5*zoom, wbox, 5*zoom)
@@ -121,8 +159,10 @@ class InfraPainter:
     def draw_building_1(self, context, params, index):
         outs = self.get_infrastructure_params(index, "building-1", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        self.draw_bg(context, xloc, yloc, wbox, hbox)
+        if self.draw_rplot(context, "building-1", xloc, yloc, params): return
 
+        xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
+        self.draw_bg(context, xloc, yloc, wbox, hbox)
         context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, wbox, 5*zoom)
         context.rectangle(xloc, yloc+hbox-5*zoom, wbox, 5*zoom)
@@ -139,8 +179,10 @@ class InfraPainter:
     def draw_seeport_0(self, context, params, index):
         outs = self.get_infrastructure_params(index, "seeport-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        self.draw_bg(context, xloc, yloc, wbox, hbox)
+        if self.draw_rplot(context, "seeport-0", xloc, yloc, params): return
 
+        xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
+        self.draw_bg(context, xloc, yloc, wbox, hbox)
         context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, wbox, 5*zoom)
         context.rectangle(xloc, yloc+hbox-5*zoom, wbox, 5*zoom)
@@ -154,8 +196,10 @@ class InfraPainter:
     def draw_seeport_1(self, context, params, index):
         outs = self.get_infrastructure_params(index, "seeport-1", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        self.draw_bg(context, xloc, yloc, wbox, hbox)
+        if self.draw_rplot(context, "seeport-1", xloc, yloc, params): return
 
+        xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
+        self.draw_bg(context, xloc, yloc, wbox, hbox)
         context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, wbox, 5*zoom)
         context.rectangle(xloc, yloc+hbox-5*zoom, wbox, 5*zoom)
@@ -169,8 +213,10 @@ class InfraPainter:
     def draw_airport_0(self, context, params, index):
         outs = self.get_infrastructure_params(index, "seeport-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        self.draw_bg(context, xloc, yloc, wbox, hbox)
+        if self.draw_rplot(context, "airport-0", xloc, yloc, params): return
 
+        xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
+        self.draw_bg(context, xloc, yloc, wbox, hbox)
         context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, wbox, 5*zoom)
         context.rectangle(xloc, yloc+hbox-5*zoom, wbox, 5*zoom)
@@ -183,8 +229,10 @@ class InfraPainter:
     def draw_fortress_0(self, context, params, index):
         outs = self.get_infrastructure_params(index, "fortress-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        self.draw_bg(context, xloc, yloc, wbox, hbox)
+        if self.draw_rplot(context, "fortress-0", xloc, yloc, params): return
 
+        xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
+        self.draw_bg(context, xloc, yloc, wbox, hbox)
         sq = 10*zoom
         context.set_source_rgba(*color)
         context.rectangle(xloc, yloc, sq, sq)
@@ -362,7 +410,8 @@ class MultiPainter(list):
 class InfraWindow(TerrWindow):
     version = 0
     default_app_controls = {
-        "infra-num-to-add": 0,
+        # "resource-num": 0,
+        "infra-num": 0,
         "selection-add": False,
         "selection-next": False,
         "current-mode": "navigation",
@@ -402,15 +451,13 @@ class InfraWindow(TerrWindow):
 
     def fix_battlefield_infrastructure(self):
         length = len(self.library["resources"])
-
         new_infra_list = []
         infra_list = self.battlefield["infrastructure"]
         for shape, *params in infra_list:
             new_row = [shape, params[0], params[1]]
             new_row += [1.0] + [0.0] * length
-            for j, p in enumerate(new_row):
-                if j > 2: new_row[j] = float(p)
-                else: new_row[j] = p
+            for j, p in enumerate(params):
+                if j >= 2: new_row[j+1] = float(p)
             new_infra_list.append(new_row)
         self.battlefield["infrastructure"] = new_infra_list
 
@@ -446,7 +493,7 @@ class InfraWindow(TerrWindow):
 
             elif self.check_mode("inserting"):
                 buildlist = list(sorted(self.library["infrastructure"].keys()))
-                build = buildlist[self.app_controls["infra-num-to-add"]]
+                build = buildlist[self.app_controls["infra-num"]]
                 xyro = round(ox), round(oy)
                 if self.graph.validate_infra_location(build, xyro):
                     if self.graph.is_shape_box(build):
@@ -506,6 +553,7 @@ class InfraWindow(TerrWindow):
             self.infra_painter.selected_infrastructure = set()
             for key, name in self.app_controls["available-modes"].items():
                 print(key, "-->", name)
+            self.infra_painter.object_flag = "infra"
             self.draw_content()
 
         elif key_name in self.app_controls["available-modes"]:
@@ -521,13 +569,31 @@ class InfraWindow(TerrWindow):
                 print("##> save")
                 self.save_map("outlib", "outfield")
             else: print("Current mode does not support keys sS")
-        elif key_name in "bB":
+            
+        elif key_name == "0":
             if self.check_mode("navigation"):
-                print("##> hide background")
-                self.infra_painter.background_flag = False
+                print("##> show routes distribution")
+                self.infra_painter.object_flag = "route"
                 self.draw_content()
-                self.infra_painter.background_flag = True
-            else: print("Current mode does not support keys bB")
+            else: print("Current mode does not support key 0")
+        elif key_name == "1":
+            if self.check_mode("navigation"):
+                print("##> show infrastructure distribution")
+                self.infra_painter.object_flag = "infra"
+                self.draw_content()
+            else: print("Current mode does not support key 1")
+        elif key_name == "2":
+            if self.check_mode("navigation"):
+                print("##> show solid resource distribution")
+                self.infra_painter.object_flag = "solid"
+                self.draw_content()
+            else: print("Current mode does not support key 2")
+        elif key_name == "3":
+            if self.check_mode("navigation"):
+                print("##> show liquid resource distribution")
+                self.infra_painter.object_flag = "liquid"
+                self.draw_content()
+            else: print("Current mode does not support key 3")
 
         elif key_name in "vV":
             if self.check_mode("navigation", "inserting", "editing"):
@@ -537,15 +603,21 @@ class InfraWindow(TerrWindow):
                 self.draw_content()
             else: print("Current mode does not support keys vV")
 
-        elif key_name == "Insert":
+        elif key_name == "Page_Up":
             if self.check_mode("inserting", "editing"):
-                self.app_controls["infra-num-to-add"] += 1
+                self.app_controls["infra-num"] += 1
                 ilen = len(self.library["infrastructure"])
-                self.app_controls["infra-num-to-add"] %= ilen
-                bl = list(sorted(self.library["infrastructure"].keys()))
-                print("infra:", bl[self.app_controls["infra-num-to-add"]])
-            else: print("Current mode does not support inserting")
-            
+                self.app_controls["infra-num"] %= ilen                
+                print("infra:", self.decode_infra())
+            else: print("Current mode does not support PageUp")
+        elif key_name == "Page_Down":
+            if self.check_mode("inserting", "editing"):
+                self.app_controls["infra-num"] -= 1
+                ilen = len(self.library["infrastructure"])
+                self.app_controls["infra-num"] %= ilen
+                print("infra:", self.decode_infra())
+            else: print("Current mode does not support PageDown")
+
         elif key_name == "Delete":
             if self.check_mode("deleting"):
                 print("##> delete")
@@ -585,7 +657,7 @@ class InfraWindow(TerrWindow):
         elif key_name in "cC":
             if self.check_mode("editing", "inserting"):
                 buildlist = list(sorted(self.library["infrastructure"].keys()))
-                build = buildlist[self.app_controls["infra-num-to-add"]]
+                build = buildlist[self.app_controls["infra-num"]]
                 shape = self.library["infrastructure"][build]["shape"]
                 if shape != "line": print("##> cannot connect - no line!")
                 elif len(self.infra_painter.selected_infrastructure) == 2:
@@ -639,6 +711,14 @@ class InfraWindow(TerrWindow):
                 
         else: NaviWindow.on_press(self, widget, event)
 
+    def decode_infra(self):
+        func = lambda keys: list(sorted(keys))
+        names = func(self.library["infrastructure"].keys())
+        return names[self.app_controls["infra-num"]]        
+    # def decode_resource(self, index=0):
+    #     ri = self.app_controls["resource-num"]
+    #     return self.library["resources"][ri][index]
+    
     def check_mode(self, *args):
         return self.app_controls["current-mode"] in args
 
@@ -651,22 +731,19 @@ def run_example():
         "window-offset": (500, 100),
         "selection-color": (0.8, 0, 0.8),
         "selection-radius2": 2500,
+        "plot-radius-scale": 5,
         "move-sensitive": 50,
         "move-editing": 2
     }
     
-    from MapExamples import library0
-    from MapExamples import battlefield0
-
-    if len(sys.argv) >= 3:
-        library_json = sys.argv[1]
-        battlefield_json = sys.argv[2]
-        print(f"load library: {library_json}")
-        with open(library_json, "r") as fd1:
-            library0 = json.load(fd1)
-        print(f"load battlefield: {battlefield_json}")
-        with open(battlefield_json, "r") as fd2:
-            battlefield0 = json.load(fd2)        
+    library_json = sys.argv[1]
+    battlefield_json = sys.argv[2]
+    print(f"load library: {library_json}")
+    with open(library_json, "r") as fd1:
+        library0 = json.load(fd1)
+    print(f"load battlefield: {battlefield_json}")
+    with open(battlefield_json, "r") as fd2:
+        battlefield0 = json.load(fd2)        
     InfraWindow(example_config, library0, battlefield0)
 
     try: Gtk.main()
