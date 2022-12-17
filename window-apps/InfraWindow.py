@@ -421,8 +421,8 @@ class InfraWindow(TerrWindow):
             "F2": "selection",
             "F3": "inserting",
             "F4": "editing",
-            "F5": "deleting",
-            "F6": "modifying"
+            "F5": "modifying",
+            "F6": "deleting"
         }
     }
 
@@ -499,7 +499,8 @@ class InfraWindow(TerrWindow):
                 xyro = round(ox), round(oy)
                 if self.graph.validate_infra_location(build, xyro):
                     if self.graph.is_shape_box(build):
-                        insrow = (build, *xyro, 1.0)
+                        rl = len(self.library["resources"])
+                        insrow = [build, *xyro, 1.0] + [0.0] * rl
                         self.battlefield["infrastructure"].append(insrow)
                         print("add infra", insrow)
                         self.draw_content()
