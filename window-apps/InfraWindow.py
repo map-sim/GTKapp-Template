@@ -491,7 +491,7 @@ class InfraWindow(TerrWindow):
                         self.infra_painter.selected_infrastructure = selection
                 else: self.infra_painter.selected_infrastructure = selection
                 print(f"({round(ox, 2)}, {round(oy, 2)}) --> {selection}")
-                self.draw_content()
+                self.draw_contnt()
 
             elif self.check_mode("inserting"):
                 buildlist = list(sorted(self.library["infrastructure"].keys()))
@@ -640,10 +640,17 @@ class InfraWindow(TerrWindow):
             if self.check_mode("deleting"):
                 print("##> clean")
                 self.graph.clean_null_infra()
+                self.draw_content()
+            elif self.check_mode("modifying"):
+                for infra in self.infra_painter.selected_infrastructure:
+                    b, x, y, hp, *params = self.battlefield["infrastructure"][infra]
+                    zeros = [0.0] * len(params)
+                    self.battlefield["infrastructure"][infra] = [b, x, y, hp, *zeros]
+                self.draw_content()
             else: print("Current mode does not support keys qQ")
     
         elif key_name in "aA":
-            if self.check_mode("selection", "editing"):
+            if self.check_mode("selection", "editing", "modifying"):
                 new_val = not self.app_controls["selection-add"]
                 self.app_controls["selection-add"] = new_val
                 self.app_controls["selection-next"] = False
