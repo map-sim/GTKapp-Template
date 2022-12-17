@@ -3,8 +3,8 @@
     "resources_desc": ["name", "ro", "state"],
     "resources": [
 	["food", 1,  "solid", [0, 1, 0]],
-	["fuel", 2,  "liquid", [1, 0, 1]],
-	["ammu", 10, "solid", [0, 0, 0]]
+	["fuel", 2,  "liquid", [0.33, 0, 1]],
+	["ammu", 10, "solid", [0.5, 0.2, 0.1]]
     ],
     "terrains": {
 	"steppe-0": {"desc": "flat steppe", "color": [1, 0.95, 0.8]},
@@ -21,8 +21,8 @@
 	"seeport-1":   {"desc": "tiny see port",  "color": [0.3, 0.3, 0.3], "size": [100, 100], "shape": "box", "space": 500, "volume": 200},
 	"airport-0":   {"desc": "air port",       "color": [0.3, 0.3, 0.3], "size": [150, 150], "shape": "box", "space": 400, "volume": 200},
 	"fortress-0":  {"desc": "small fortress", "color": [0.3, 0.3, 0.3], "size": [80, 80],   "shape": "box", "space": 100, "volume": 10},
-	"node-0":      {"desc": "routing node",   "color": [0.3, 0.3, 0.3], "size": [40, 40],   "shape": "box", "space": 5, "volume": 0},
-	"node-1":      {"desc": "routing node",   "color": [0.3, 0.3, 0.3], "size": [50, 50],   "shape": "box", "space": 20, "volume": 5},
+	"node-0":      {"desc": "routing node",   "color": [0.3, 0.3, 0.3], "size": [40, 40],   "shape": "box", "space": 15, "volume": 0},
+	"node-1":      {"desc": "routing node",   "color": [0.3, 0.3, 0.3], "size": [50, 50],   "shape": "box", "space": 25, "volume": 5},
 	"route-0":     {"desc": "ground route",   "color": [0.3, 0.3, 0.3], "size": [50, 200],  "shape": "line", "space": 0, "volume": 0},
 	"route-1":     {"desc": "ground route",   "color": [0.3, 0.3, 0.3], "size": [50, 155],  "shape": "line", "space": 0, "volume": 0},
 	"minefield-0": {"desc": "minefield",      "color": [0.3, 0.3, 0.3], "size": [60, 60],   "shape": "box", "space": 0, "volume": 0}

@@ -36,7 +36,7 @@ class InfraPainter:
             color = self.config["selection-color"]
         return color, zoom, xloc, yloc, wbox, hbox
 
-    def draw_rplot(self, context, name, xloc, yloc, params):
+    def draw_rplot(self, context, name, xloc, yloc, params, index):
         if self.object_flag == "infra": return False
         if self.object_flag == "route": return True
 
@@ -49,8 +49,12 @@ class InfraPainter:
         csq = math.sqrt(capacity)
         zoom = math.sqrt(self.config["window-zoom"])
         radius = self.config["plot-radius-scale"] * zoom * csq
-        radius1 = self.config["plot-radius-scale"] * zoom * csq + 1.5 * zoom
-        context.set_source_rgba(0, 0, 0)
+        radius1 = self.config["plot-radius-scale"] * zoom * csq + 2.5 * zoom
+        if index in self.selected_infrastructure:
+            color = self.config["selection-color"]
+        else: color = (0, 0, 0)
+
+        context.set_source_rgba(*color)
         context.arc(xloc, yloc, radius1, 0, 2 * math.pi)
         context.fill()
         context.set_source_rgba(1, 1, 1)
@@ -59,11 +63,9 @@ class InfraPainter:
 
         a0 = 0
         for i, v in enumerate(params[3:]):
-            if v > 0: print(v / capacity)
             state = self.library["resources"][i][2]
             if state != self.object_flag: continue
             a1 = 2 * math.pi * v / capacity
-            if v > 0: print(a0, a1)
             color = self.library["resources"][i][3]
             context.set_source_rgba(*color)
             context.line_to (xloc, yloc);
@@ -102,8 +104,7 @@ class InfraPainter:
     def draw_node(self, context, name, params, index, radius_factor):
         outs = self.get_infrastructure_params(index, name, *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        # xloc, yloc =  xloc + wbox / 2, yloc + hbox / 2
-        if self.draw_rplot(context, name, xloc, yloc, params): return
+        if self.draw_rplot(context, name, xloc, yloc, params, index): return
 
         r = (wbox + hbox) * radius_factor
         context.set_source_rgba(*color)
@@ -140,7 +141,7 @@ class InfraPainter:
     def draw_building_0(self, context, params, index):
         outs = self.get_infrastructure_params(index, "building-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        if self.draw_rplot(context, "building-0", xloc, yloc, params): return
+        if self.draw_rplot(context, "building-0", xloc, yloc, params, index): return
 
         xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
         self.draw_bg(context, xloc, yloc, wbox, hbox)
@@ -159,7 +160,7 @@ class InfraPainter:
     def draw_building_1(self, context, params, index):
         outs = self.get_infrastructure_params(index, "building-1", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        if self.draw_rplot(context, "building-1", xloc, yloc, params): return
+        if self.draw_rplot(context, "building-1", xloc, yloc, params, index): return
 
         xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
         self.draw_bg(context, xloc, yloc, wbox, hbox)
@@ -179,7 +180,7 @@ class InfraPainter:
     def draw_seeport_0(self, context, params, index):
         outs = self.get_infrastructure_params(index, "seeport-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        if self.draw_rplot(context, "seeport-0", xloc, yloc, params): return
+        if self.draw_rplot(context, "seeport-0", xloc, yloc, params, index): return
 
         xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
         self.draw_bg(context, xloc, yloc, wbox, hbox)
@@ -196,7 +197,7 @@ class InfraPainter:
     def draw_seeport_1(self, context, params, index):
         outs = self.get_infrastructure_params(index, "seeport-1", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        if self.draw_rplot(context, "seeport-1", xloc, yloc, params): return
+        if self.draw_rplot(context, "seeport-1", xloc, yloc, params, index): return
 
         xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
         self.draw_bg(context, xloc, yloc, wbox, hbox)
@@ -213,7 +214,7 @@ class InfraPainter:
     def draw_airport_0(self, context, params, index):
         outs = self.get_infrastructure_params(index, "seeport-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        if self.draw_rplot(context, "airport-0", xloc, yloc, params): return
+        if self.draw_rplot(context, "airport-0", xloc, yloc, params, index): return
 
         xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
         self.draw_bg(context, xloc, yloc, wbox, hbox)
@@ -229,7 +230,7 @@ class InfraPainter:
     def draw_fortress_0(self, context, params, index):
         outs = self.get_infrastructure_params(index, "fortress-0", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        if self.draw_rplot(context, "fortress-0", xloc, yloc, params): return
+        if self.draw_rplot(context, "fortress-0", xloc, yloc, params, index): return
 
         xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
         self.draw_bg(context, xloc, yloc, wbox, hbox)
@@ -410,7 +411,7 @@ class MultiPainter(list):
 class InfraWindow(TerrWindow):
     version = 0
     default_app_controls = {
-        # "resource-num": 0,
+        "resource-num": 0,
         "infra-num": 0,
         "selection-add": False,
         "selection-next": False,
@@ -420,7 +421,8 @@ class InfraWindow(TerrWindow):
             "F2": "selection",
             "F3": "inserting",
             "F4": "editing",
-            "F5": "deleting"
+            "F5": "deleting",
+            "F6": "modifying"
         }
     }
 
@@ -469,7 +471,7 @@ class InfraWindow(TerrWindow):
         oy = (int(event.y) - yoffset) / zoom
 
         if event.button == 1:
-            if self.check_mode("selection", "deleting", "editing"):
+            if self.check_mode("selection", "deleting", "editing", "modifying"):
                 selection = self.graph.find_infra(ox, oy)
                 if self.app_controls["selection-add"]:
                     for it in selection:
@@ -571,25 +573,25 @@ class InfraWindow(TerrWindow):
             else: print("Current mode does not support keys sS")
             
         elif key_name == "0":
-            if self.check_mode("navigation"):
+            if self.check_mode("navigation", "modifying"):
                 print("##> show routes distribution")
                 self.infra_painter.object_flag = "route"
                 self.draw_content()
             else: print("Current mode does not support key 0")
         elif key_name == "1":
-            if self.check_mode("navigation"):
+            if self.check_mode("navigation", "selection", "modifying"):
                 print("##> show infrastructure distribution")
                 self.infra_painter.object_flag = "infra"
                 self.draw_content()
             else: print("Current mode does not support key 1")
         elif key_name == "2":
-            if self.check_mode("navigation"):
+            if self.check_mode("navigation", "selection", "modifying"):
                 print("##> show solid resource distribution")
                 self.infra_painter.object_flag = "solid"
                 self.draw_content()
             else: print("Current mode does not support key 2")
         elif key_name == "3":
-            if self.check_mode("navigation"):
+            if self.check_mode("navigation", "selection", "modifying"):
                 print("##> show liquid resource distribution")
                 self.infra_painter.object_flag = "liquid"
                 self.draw_content()
@@ -609,6 +611,11 @@ class InfraWindow(TerrWindow):
                 ilen = len(self.library["infrastructure"])
                 self.app_controls["infra-num"] %= ilen                
                 print("infra:", self.decode_infra())
+            elif self.check_mode("modifying"):
+                self.app_controls["resource-num"] += 1
+                ilen = len(self.library["resources"])
+                self.app_controls["resource-num"] %= ilen
+                print("resource:", self.decode_resource())
             else: print("Current mode does not support PageUp")
         elif key_name == "Page_Down":
             if self.check_mode("inserting", "editing"):
@@ -616,6 +623,11 @@ class InfraWindow(TerrWindow):
                 ilen = len(self.library["infrastructure"])
                 self.app_controls["infra-num"] %= ilen
                 print("infra:", self.decode_infra())
+            elif self.check_mode("modifying"):
+                self.app_controls["resource-num"] -= 1
+                ilen = len(self.library["resources"])
+                self.app_controls["resource-num"] %= ilen
+                print("resource:", self.decode_resource())
             else: print("Current mode does not support PageDown")
 
         elif key_name == "Delete":
@@ -707,17 +719,45 @@ class InfraWindow(TerrWindow):
                 b, x, y, *params = self.battlefield["infrastructure"][infra]
                 x += self.config["move-editing"]
                 self.battlefield["infrastructure"][infra] = b, x, y, *params
-            self.draw_content()
-                
+            self.draw_content()                
         else: NaviWindow.on_press(self, widget, event)
+
+    def on_scroll(self, widget, event):
+        if self.check_mode("modifying"):
+            ri = self.app_controls["resource-num"]
+            resource = self.library["resources"][ri]
+            assert resource[2] in ("liquid", "solid")
+            if event.direction == Gdk.ScrollDirection.DOWN:
+                for it in self.infra_painter.selected_infrastructure:
+                    infra = self.battlefield["infrastructure"][it]
+                    if resource[2] == "solid":
+                        capacity = self.library["infrastructure"][infra[0]]["space"]
+                    elif resource[2] == "liquid":
+                        capacity = self.library["infrastructure"][infra[0]]["volume"]
+                    value = infra[4 + self.app_controls["resource-num"]] / 10
+                    infra[4 + self.app_controls["resource-num"]] -= value
+            elif event.direction == Gdk.ScrollDirection.UP:
+                for it in self.infra_painter.selected_infrastructure:
+                    infra, value = self.battlefield["infrastructure"][it], 0
+                    if resource[2] == "solid":
+                        capacity = self.library["infrastructure"][infra[0]]["space"]
+                        for i, rv in enumerate(infra[4:]):
+                            if self.library["resources"][i][2] == "solid": value += rv
+                    elif resource[2] == "liquid":
+                        capacity = self.library["infrastructure"][infra[0]]["volume"]
+                        for i, rv in enumerate(infra[4:]):
+                            if self.library["resources"][i][2] == "liquid": value += rv
+                    infra[4 + self.app_controls["resource-num"]] += (capacity - value) / 10
+            self.draw_content()                
+        else: TerrWindow.on_scroll(self, widget, event)
 
     def decode_infra(self):
         func = lambda keys: list(sorted(keys))
         names = func(self.library["infrastructure"].keys())
         return names[self.app_controls["infra-num"]]        
-    # def decode_resource(self, index=0):
-    #     ri = self.app_controls["resource-num"]
-    #     return self.library["resources"][ri][index]
+    def decode_resource(self, index=0):
+        ri = self.app_controls["resource-num"]
+        return self.library["resources"][ri][index]
     
     def check_mode(self, *args):
         return self.app_controls["current-mode"] in args
@@ -731,7 +771,7 @@ def run_example():
         "window-offset": (500, 100),
         "selection-color": (0.8, 0, 0.8),
         "selection-radius2": 2500,
-        "plot-radius-scale": 5,
+        "plot-radius-scale": 3.5,
         "move-sensitive": 50,
         "move-editing": 2
     }
