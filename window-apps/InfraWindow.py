@@ -491,7 +491,7 @@ class InfraWindow(TerrWindow):
                         self.infra_painter.selected_infrastructure = selection
                 else: self.infra_painter.selected_infrastructure = selection
                 print(f"({round(ox, 2)}, {round(oy, 2)}) --> {selection}")
-                self.draw_contnt()
+                self.draw_content()
 
             elif self.check_mode("inserting"):
                 buildlist = list(sorted(self.library["infrastructure"].keys()))
@@ -734,6 +734,9 @@ class InfraWindow(TerrWindow):
             ri = self.app_controls["resource-num"]
             resource = self.library["resources"][ri]
             assert resource[2] in ("liquid", "solid")
+            if self.infra_painter.object_flag != resource[2]:
+                print("Warning! - change map view to modify the resource!")
+                return True
             if event.direction == Gdk.ScrollDirection.DOWN:
                 for it in self.infra_painter.selected_infrastructure:
                     infra = self.battlefield["infrastructure"][it]
@@ -756,6 +759,7 @@ class InfraWindow(TerrWindow):
                             if self.library["resources"][i][2] == "liquid": value += rv
                     infra[4 + self.app_controls["resource-num"]] += (capacity - value) / 10
             self.draw_content()                
+            return True
         else: TerrWindow.on_scroll(self, widget, event)
 
     def decode_infra(self):
