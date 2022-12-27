@@ -1,11 +1,11 @@
 {
     "version": 0,
-    "resources_desc": ["name", "ro", "state"],
     "resources": [
 	["food", 1,  "solid", [0, 1, 0]],
 	["fuel", 2,  "liquid", [0.33, 0, 1]],
 	["ammu", 10, "solid", [0.5, 0.2, 0.1]]
     ],
+    "resources_desc": ["name", "ro", "state", "color"],
     "terrains": {
 	"steppe-0": {"desc": "flat steppe", "color": [1, 0.95, 0.8]},
 	"highland-1": {"desc": "flat highland", "color": [1, 0.9, 0.75]},
@@ -15,16 +15,255 @@
 	"water-1": {"desc": "navigable water", "color": [0.45, 0.8, 0.95]}
     },
     "infrastructure": {
-	"building-0":  {"desc": "small building", "color": [0.3, 0.3, 0.3], "size": [100, 100], "shape": "box", "space": 100, "volume": 5},
-	"building-1":  {"desc": "industrials",    "color": [0.3, 0.3, 0.3], "size": [125, 125], "shape": "box", "space": 300, "volume": 100},
-	"seeport-0":   {"desc": "small see port", "color": [0.3, 0.3, 0.3], "size": [150, 150], "shape": "box", "space": 250, "volume": 100},
-	"seeport-1":   {"desc": "tiny see port",  "color": [0.3, 0.3, 0.3], "size": [100, 100], "shape": "box", "space": 500, "volume": 200},
-	"airport-0":   {"desc": "air port",       "color": [0.3, 0.3, 0.3], "size": [150, 150], "shape": "box", "space": 400, "volume": 200},
-	"fortress-0":  {"desc": "small fortress", "color": [0.3, 0.3, 0.3], "size": [80, 80],   "shape": "box", "space": 100, "volume": 10},
-	"node-0":      {"desc": "routing node",   "color": [0.3, 0.3, 0.3], "size": [40, 40],   "shape": "box", "space": 15, "volume": 0},
-	"node-1":      {"desc": "routing node",   "color": [0.3, 0.3, 0.3], "size": [50, 50],   "shape": "box", "space": 25, "volume": 5},
-	"route-0":     {"desc": "ground route",   "color": [0.3, 0.3, 0.3], "size": [50, 200],  "shape": "line", "space": 0, "volume": 0},
-	"route-1":     {"desc": "ground route",   "color": [0.3, 0.3, 0.3], "size": [50, 155],  "shape": "line", "space": 0, "volume": 0},
-	"minefield-0": {"desc": "minefield",      "color": [0.3, 0.3, 0.3], "size": [60, 60],   "shape": "box", "space": 0, "volume": 0}
+	"building-0":  {"desc": "small building", "color": [0.3, 0.3, 0.3], "size": [100, 100], "bandwidth": 50, "build": 500, "shape": "box", "space": 100, "volume": 5},
+	"building-1":  {"desc": "industrials",    "color": [0.3, 0.3, 0.3], "size": [125, 125], "bandwidth": 60, "build": 800, "shape": "box", "space": 300, "volume": 100},
+	"seeport-0":   {"desc": "small see port", "color": [0.3, 0.3, 0.3], "size": [150, 150], "bandwidth": 60, "build": 550, "shape": "box", "space": 250, "volume": 100},
+	"seeport-1":   {"desc": "tiny see port",  "color": [0.3, 0.3, 0.3], "size": [100, 100], "bandwidth": 80, "build": 650, "shape": "box", "space": 500, "volume": 200},
+	"airport-0":   {"desc": "air port",       "color": [0.3, 0.3, 0.3], "size": [150, 150], "bandwidth": 90, "build": 550, "shape": "box", "space": 400, "volume": 200},
+	"fortress-0":  {"desc": "small fortress", "color": [0.3, 0.3, 0.3], "size": [80, 80],   "bandwidth": 10, "build": 150, "shape": "box", "space": 100, "volume": 10},
+	"node-0":      {"desc": "routing node",   "color": [0.3, 0.3, 0.3], "size": [40, 40],   "bandwidth": 20, "build": 90,  "shape": "box", "space": 15,  "volume": 0},
+	"node-1":      {"desc": "routing node",   "color": [0.3, 0.3, 0.3], "size": [50, 50],   "bandwidth": 50, "build": 120, "shape": "box", "space": 25,  "volume": 5},
+	"route-0":     {"desc": "ground route",   "color": [0.3, 0.3, 0.3], "size": [50, 200],  "bandwidth": 10, "build": 0,   "shape": "line", "space": 0,  "volume": 0},
+	"route-1":     {"desc": "ground route",   "color": [0.3, 0.3, 0.3], "size": [50, 155],  "bandwidth": 30, "build": 0,   "shape": "line", "space": 0,  "volume": 0},
+	"minefield-0": {"desc": "minefield",      "color": [0.3, 0.3, 0.3], "size": [60, 60],   "bandwidth": 8,  "build": 2,   "shape": "box",  "space": 0,  "volume": 0}
+    },
+    "weapons": {
+	"personal": {
+	    "size": 0.1,
+	    "view-range": 5,
+	    "fire-range": 2,
+	    "fire-power": 0.5,
+	    "accuracy": 0.33,
+	    "cost": {"ammu": 0.5},
+	    "abilities": ["reactive-fight", "direct-fight"],
+	    "preparing-delay": 1
+	},
+	"engineer": {
+	    "size": 4.0,
+	    "view-range": 6,
+	    "fire-range": 0,
+	    "fire-power": 0,
+	    "accuracy": 0,
+	    "cost": {"fuel": 0.5, "ammu": 0.3},
+	    "abilities": ["construction", "destruction"],
+	    "destruction": ["minefield-0", "node-0", "node-1"],
+	    "construction": ["minefield-0", "node-0"],
+	    "preparing-delay": 120
+	},
+	"drone": {
+	    "size": 0.6,
+	    "view-range": 10,
+	    "fire-range": 0,
+	    "fire-power": 0,
+	    "accuracy": 0,
+	    "cost": {"fuel": 0.1},
+	    "abilities": ["fly-operation"],
+	    "preparing-delay": 60
+	},
+	"warmate": {
+	    "size": 0.5,
+	    "view-range": 8,
+	    "fire-range": 8,
+	    "fire-power": 0.4,
+	    "accuracy": 0.85,
+	    "cost": {"fuel": 0.1, "ammu": 0.1},
+	    "abilities": ["fly-operation", "indirect-fight"],
+	    "preparing-delay": 75
+	},
+	"machine-gun-0": {
+	    "size": 0.6,
+	    "view-range": 5,
+	    "fire-range": 3,
+	    "fire-power": 0.9,
+	    "accuracy": 0.33,
+	    "cost": {"ammu": 1.5},
+	    "abilities": ["reactive-fight", "direct-fight"],
+	    "preparing-delay": 15
+	},
+	"machine-gun-1": {
+	    "size": 1.2,
+	    "view-range": 5,
+	    "fire-range": 3.5,
+	    "fire-power": 1.2,
+	    "accuracy": 0.33,
+	    "cost": {"ammu": 1.8},
+	    "abilities": ["reactive-fight", "direct-fight"],
+	    "preparing-delay": 20
+	},
+	"mortar-0": {
+	    "size": 0.6,
+	    "view-range": 5.5,
+	    "fire-range": 4,
+	    "fire-power": 1.5,
+	    "accuracy": 0.25,
+	    "cost": {"ammu": 1.5},
+	    "abilities": ["reactive-fight", "indirect-fight"],
+	    "preparing-delay": 15
+	},
+	"anti-tank": {
+	    "size": 0.5,
+	    "view-range": 5.5,
+	    "fire-range": 4.5,
+	    "fire-power": 0.5,
+	    "accuracy": 0.75,
+	    "cost": {"ammu": 1.5},
+	    "abilities": ["reactive-fight", "direct-fight", "piercing"],
+	    "preparing-delay": 10
+	},
+	"anti-drone": {
+	    "size": 0.5,
+	    "view-range": 6.0,
+	    "fire-range": 5.0,
+	    "fire-power": 0.5,
+	    "accuracy": 0.75,
+	    "cost": {"ammu": 1.5},
+	    "abilities": ["reactive-fight", "anti-aircraft"],
+	    "preparing-delay": 10
+	}
+    },
+    "actors": {
+	"militia": {
+	    "personel": 1,
+	    "armor": 0.05,
+	    "space": 0.6,
+	    "volume": 0.0,
+	    "size": 0.11,
+	    "aperture": 0.1,
+	    "max-velocity": 17.5,
+	    "velocity-factors": {
+		"steppe-0": 0.75,
+		"highland-1": 0.25,
+		"highland-2": 0.1,
+		"forest-0": 0.4,
+		"water-0": 0.02
+	    },
+	    "inactive-cost": {"food": 1},
+	    "active-cost": {"food": 1.2},
+	    "preparing-delay": 1.0,
+	    "weapons": {
+		"personal": 1.0,
+		"machine-gun-0": 0.01
+	    }
+	},
+	"infantry": {
+	    "personel": 1,
+	    "armor": 0.2,
+	    "space": 0.8,
+	    "volume": 0.0,
+	    "size": 0.1,
+	    "aperture": 0.1,
+	    "max-velocity": 18.5,
+	    "velocity-factors": {
+		"steppe-0": 0.75,
+		"highland-1": 0.25,
+		"highland-2": 0.1,
+		"forest-0": 0.4,
+		"water-0": 0.02
+	    },
+	    "inactive-cost": {"food": 1},
+	    "active-cost": {"food": 1.2},
+	    "preparing-delay": 1.0,
+	    "weapons": {
+		"personal": 1.0,
+		"machine-gun-0": 0.02,
+		"mortar-0": 0.01,
+		"drone": 0.05,
+		"anti-drone": 0.01,
+		"anti-tank": 0.01
+	    }
+	},
+	"scouting": {
+	    "personel": 1,
+	    "armor": 0.08,
+	    "space": 0.6,
+	    "volume": 0.0,
+	    "size": 0.1,
+	    "aperture": 0.08,
+	    "max-velocity": 20.5,
+	    "velocity-factors": {
+		"steppe-0": 0.78,
+		"highland-1": 0.3,
+		"highland-2": 0.15,
+		"forest-0": 0.45,
+		"water-0": 0.03
+	    },
+	    "inactive-cost": {"food": 1},
+	    "active-cost": {"food": 1.2},
+	    "preparing-delay": 0.9,
+	    "weapons": {
+		"personal": 1.0,
+		"warmate": 0.2,
+		"drone": 0.25,
+		"anti-drone": 0.02,
+		"anti-tank": 0.04
+	    }
+	},
+	"luv": {
+	    "personel": 2,
+	    "armor": 0.8,
+	    "space": 2.6,
+	    "volume": 1.0,
+	    "size": 1.2,
+	    "aperture": 0.25,
+	    "max-velocity": 95.0,
+	    "velocity-factors": {
+		"steppe-0": 0.25,
+		"highland-1": 0.1,
+		"forest-0": 0.1
+	    },
+	    "inactive-cost": {},
+	    "active-cost": {"fuel": 3.2},
+	    "preparing-delay": 0.4,
+	    "weapons": {
+		"personal": 1.0,
+		"engineer": 0.06,
+		"machine-gun-0": 0.02,
+		"machine-gun-1": 0.02,
+		"warmate": 0.2,
+		"drone": 0.25,
+		"anti-drone": 0.01,
+		"anti-tank": 0.04
+	    }
+	},
+	"truck": {
+	    "personel": 2,
+	    "armor": 0.4,
+	    "space": 20.6,
+	    "volume": 3.0,
+	    "size": 3.2,
+	    "aperture": 0.85,
+	    "max-velocity": 75.0,
+	    "velocity-factors": {
+		"steppe-0": 0.15,
+		"highland-1": 0.05,
+		"forest-0": 0.05
+	    },
+	    "inactive-cost": {},
+	    "active-cost": {"fuel": 8.2},
+	    "preparing-delay": 0.6,
+	    "weapons": {
+		"personal": 1.0
+	    }
+	},
+	"tanker": {
+	    "personel": 2,
+	    "armor": 0.5,
+	    "space": 2.6,
+	    "volume": 30.0,
+	    "size": 3.2,
+	    "aperture": 0.85,
+	    "max-velocity": 75.0,
+	    "velocity-factors": {
+		"steppe-0": 0.15,
+		"highland-1": 0.05,
+		"forest-0": 0.05
+	    },
+	    "inactive-cost": {},
+	    "active-cost": {"fuel": 8.5},
+	    "preparing-delay": 0.6,
+	    "weapons": {
+		"personal": 1.0
+	    }
+	}
     }
 }
