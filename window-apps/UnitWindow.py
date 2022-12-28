@@ -1,9 +1,6 @@
 #!/usr/bin/python3
 
-import gi
-
-# gi.require_version('Gtk', '3.0')
-# from gi.repository import Gtk
+import gi, math
 
 gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk
@@ -38,6 +35,68 @@ class UnitPainter:
         else: color = self.battlefield["owners"][unit["owner"]]["color"]
         return color, zoom, xloc, yloc, wbox, hbox
 
+    def deduce_loc(self, pt, render=True):
+        if type(pt) is int:
+            xloc, yloc = 0, 0
+            params = self.battlefield["infrastructure"][pt]
+            if params is None: print(f"Warning! Unit {index} in null infra")
+            else: xloc, yloc = params[1:3]
+        else: xloc, yloc = pt
+        if not render: return xloc, yloc
+        xoffset, yoffset = self.config["window-offset"]
+        zoom = self.config["window-zoom"]
+        xloc, yloc = xloc * zoom, yloc * zoom
+        xloc, yloc = xloc + xoffset, yloc + yoffset
+        return xloc, yloc
+
+    def verify_order_distance(self, pto, pte):
+        xo, yo = self.deduce_loc(pto, False)
+        xe, ye = self.deduce_loc(pte, False)
+        d2 = (xo-xe)**2 + (yo-ye)**2
+        assert d2 < self.config["order-max-distance2"]
+
+    def draw_move(self, context, unit,  order):
+        zoom = self.config["window-zoom"]
+        xo, yo = self.deduce_loc(unit["location"])
+        pto = unit["location"]
+
+        width = zoom * self.config["unit-line"]
+        context.arc(xo, yo, width, 0, 2 * math.pi)
+        context.fill()
+        for pt in order[2:]:
+            self.verify_order_distance(pto, pt)
+            pto = pt
+
+            xe, ye  = self.deduce_loc(pt)
+            context.set_source_rgba(*self.config["order-color"])
+            context.set_line_width(width)
+            context.move_to(xo, yo) 
+            context.line_to(xe, ye)
+            context.stroke()
+
+            context.arc(xe, ye, width, 0, 2 * math.pi)
+            context.fill()
+            xo, yo = xe, ye
+
+    def draw_transfer(self, context, unit,  order):
+        zoom = self.config["window-zoom"]
+        xo, yo = self.deduce_loc(unit["location"])
+        unit2 = self.battlefield["units"][order[2]]
+        xe, ye = self.deduce_loc(unit2["location"])
+        self.verify_order_distance(unit["location"], unit2["location"])
+
+        width = zoom * self.config["unit-line"]
+        context.arc(xo, yo, width, 0, 2 * math.pi)
+        context.fill()
+        context.set_source_rgba(*self.config["order-color"])
+        context.set_line_width(width)
+        context.move_to(xo, yo) 
+        context.line_to(xe, ye)
+        context.stroke()
+
+        context.arc(xe, ye, width, 0, 2 * math.pi)
+        context.fill()
+
     def draw(self, context):
         if self.object_flag == "no-units": return
 
@@ -53,7 +112,16 @@ class UnitPainter:
             context.move_to(xloc + wbox, yloc) 
             context.line_to(xloc, yloc+hbox)
             context.stroke()
+        
+        for unit in self.battlefield["units"]:            
+            if "staff" not in unit: continue
+            if "orders" not in unit["staff"]: continue
+            if not unit["staff"]["orders"]: continue
 
+            for order in unit["staff"]["orders"]:
+                if order[0] == "move": self.draw_move(context, unit, order)
+                elif order[0] == "transfer": self.draw_transfer(context, unit, order)
+                else: raise ValueError(f"not supported order: {order[0]}")
 
 class UnitValidator:
     def __init__(self, name, conf):
@@ -120,7 +188,7 @@ class UnitWindow(InfraWindow):
             "F4": "editing",
             "F5": "modifying",
             "F6": "deleting",
-            "F7": "designation"
+            "F7": "designation"            
         }
     }
 
@@ -139,13 +207,15 @@ class UnitWindow(InfraWindow):
     def on_press(self, widget, event):
         key_name = Gdk.keyval_name(event.keyval)
         if key_name == "Escape":
-            InfraWindow.on_press(self, widget, event)
             units_counter = {}
             for uconf in self.battlefield["units"]:
                 try: units_counter[uconf["owner"]] += 1
                 except KeyError: units_counter[uconf["owner"]] = 1
             for owner, count in units_counter.items():
                 print(f"Owner: {owner} has {count} unit(s)")
+            self.unit_painter.object_flag = "units"
+            self.unit_painter.selected_units = set()
+            InfraWindow.on_press(self, widget, event)
 
         elif key_name in "aA":
             if self.check_mode("selection", "editing", "modifying", "designation"):
@@ -208,6 +278,8 @@ if __name__ == "__main__":
         "window-size": (1800, 820),
         "window-offset": (500, 100),
         "selection-color": (0.8, 0, 0.8),
+        "order-color": (0.1, 0.1, 0.1),
+        "order-max-distance2": 45500,
         "selection-radius2": 2500,
         "plot-radius-scale": 3.5,
         "move-sensitive": 50,

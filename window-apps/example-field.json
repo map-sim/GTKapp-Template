@@ -5,7 +5,19 @@
  },
  "units": [
      {"owner": "Greek",
-      "location": [-7500, 8600],
+      "location": [-7500, 8700],
+      "staff": {
+	  "number": 8,
+	  "weapons": {
+	      "command": 0.8,
+	      "personal": 0.5,
+	      "machine-gun-0": 0.025
+	  },
+	  "orders": [
+	      ["move", {"staff": 4, "militia": 60}, [-7433, 8548], 467, 469, 490],
+	      ["move", {"staff": 2, "militia": 40}, 466, 452]
+	  ]
+      },
       "militia": {
 	  "number": 100,
 	  "weapons": {
@@ -24,6 +36,14 @@
       }},
      {"owner": "Turk",
       "location": 260,
+      "staff": {
+	  "number": 1,
+	  "weapons": {
+	      "command": 0.8,
+	      "personal": 0.6,
+	      "machine-gun-0": 0.02
+	  }
+      },
       "militia": {
 	  "number": 100,
 	  "weapons": {
@@ -39,8 +59,28 @@
       }},
      {"owner": "Turk",
       "location": 279,
+      "staff": {
+	  "number": 2,
+	  "weapons": {
+	      "command": 0.8,
+	      "personal": 0.5,
+	      "machine-gun-0": 0.025
+	  },
+	  "orders": [
+	      ["transfer", {"militia": 20}, 4]
+	  ]
+      },
       "militia": {
 	  "number": 50,
+	  "weapons": {
+	      "personal": 1.0,
+	      "machine-gun-0": 0.01
+	  }
+      }},
+     {"owner": "Turk",
+      "location": 271,
+      "militia": {
+	  "number": 20,
 	  "weapons": {
 	      "personal": 1.0,
 	      "machine-gun-0": 0.01

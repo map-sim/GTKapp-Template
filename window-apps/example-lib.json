@@ -28,6 +28,16 @@
 	"minefield-0": {"desc": "minefield",      "color": [0.66, 0.7, 0.66], "size": [60, 60],   "bandwidth": 8,  "build": 2,   "shape": "box",  "space": 0,  "volume": 0}
     },
     "weapons": {
+	"command": {
+	    "size": 1.2,
+	    "view-range": 4,
+	    "fire-range": 0,
+	    "fire-power": 0,
+	    "accuracy": 0,
+	    "cost": {"fuel": 0.5},
+	    "abilities": ["command"],
+	    "preparing-delay": 240
+	},
 	"personal": {
 	    "size": 0.1,
 	    "view-range": 5,
@@ -122,6 +132,27 @@
 	}
     },
     "actors": {
+	"staff": {
+	    "size": 7.5,
+	    "armor": 2.2,
+	    "aperture": 4.6,
+	    "max-velocity": 105.0,
+	    "velocity-factors": {
+		"steppe-0": 0.17,
+		"highland-1": 0.04,
+		"forest-0": 0.08
+	    },
+	    "personel": 3,
+	    "capacity": {"solid": 2.6, "liquid": 1.1},
+	    "inactive-cost": {"fuel": 0.1},
+	    "active-cost": {"fuel": 2.2},
+	    "preparing-delay-factor": 0.8,
+	    "init-weapons": {
+		"command": 0.8,
+		"personal": 0.5,
+		"machine-gun-0": 0.03
+	    }
+	},
 	"militia": {
 	    "size": 1,
 	    "armor": 0.05,
