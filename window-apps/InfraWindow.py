@@ -468,12 +468,7 @@ class InfraWindow(TerrWindow):
         self.battlefield["infrastructure"] = new_infra_list
 
     def on_click(self, widget, event):
-        xoffset, yoffset = self.config["window-offset"]
-        width, height = self.config["window-size"]
-        zoom = self.config["window-zoom"]
-        ox = (int(event.x) - xoffset) / zoom
-        oy = (int(event.y) - yoffset) / zoom
-
+        ox, oy = self.get_click_location(event)
         if event.button == 1:
             if self.check_mode("selection", "deleting", "editing", "modifying"):
                 selection = self.graph.find_infra(ox, oy)
@@ -555,7 +550,7 @@ class InfraWindow(TerrWindow):
                 if b is None: null_counter += 1
             print("terrian parts:", len(self.battlefield["terrains"]))
             print("infra parts:", len(self.battlefield["infrastructure"]))
-            print("null parts:", null_counter)
+            print("infra-null parts:", null_counter)
             self.app_controls = copy.deepcopy(self.default_app_controls)
             self.infra_painter.selected_infra = set()
             for key, name in self.app_controls["available-modes"].items():

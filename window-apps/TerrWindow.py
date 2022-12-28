@@ -146,13 +146,15 @@ class TerrWindow(NaviWindow):
         width, height = config["window-size"]
         BaseWindow.__init__(self, title, width, height)
 
-    def on_click(self, widget, event):
+    def get_click_location(self, event):
         xoffset, yoffset = self.config["window-offset"]
-        width, height = self.config["window-size"]
         zoom = self.config["window-zoom"]
         ox = (int(event.x) - xoffset) / zoom
         oy = (int(event.y) - yoffset) / zoom
+        return ox, oy
 
+    def on_click(self, widget, event):
+        ox, oy = self.get_click_location(event)
         if event.button == 1:
             print(f"({round(ox, 2)}, {round(oy, 2)}),")
         elif event.button == 3:
