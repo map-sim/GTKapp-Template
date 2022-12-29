@@ -305,6 +305,7 @@ class InfraGraph(TerrGraph):
         infra_list = self.battlefield["infrastructure"]
         for ix, (shape, *params) in enumerate(infra_list):
             if shape is None: continue
+            if self.library["infrastructure"][shape]["shape"]  == "line": continue
             xo, yo, *other = params
             d2 = (xloc-xo)**2 + (yloc-yo)**2
             if d2 < self.config["selection-radius2"]:
@@ -332,7 +333,18 @@ class InfraGraph(TerrGraph):
         if shape_flag: print("shapes: OK")
         else: print("shapes: ERROR", shape_list)
         fails |= set(shape_list)
-        
+
+        lineline_flag, lineline = True, []
+        for ix, (shape, xo, ye, *params) in enumerate(infra_list):
+            if self.library["infrastructure"][shape]["shape"] != "line": continue
+            if self.library["infrastructure"][infra_list[xo][0]]["shape"] == "line":
+                lineline.append(ix); lineline_flag = False
+            if self.library["infrastructure"][infra_list[ye][0]]["shape"] == "line":
+                lineline.append(ix); lineline_flag = False
+        if lineline_flag: print("line-line: OK")
+        else: print("shapes: ERROR", set(lineline))
+        fails |= set(lineline)
+                
         collision_flag, collision_list = True, []
         for ix, (shape, xo, ye, *params) in enumerate(infra_list):
             if self.is_shape_line(shape): continue
@@ -490,6 +502,7 @@ class InfraWindow(TerrWindow):
                         self.infra_painter.selected_infra = selection
                 else: self.infra_painter.selected_infra = selection
                 print(f"({round(ox, 2)}, {round(oy, 2)}) --> {selection}")
+                for s in selection: print(s, self.battlefield["infrastructure"][s])
                 self.draw_content()
 
             elif self.check_mode("inserting"):
