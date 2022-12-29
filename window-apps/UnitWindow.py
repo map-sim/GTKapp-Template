@@ -127,29 +127,29 @@ class UnitPainter:
         if self.measurement is None: return
         xo, yo, xe, ye = self.measurement
         d = math.sqrt((xo-xe)**2 + (yo-ye)**2)
+        if d < 1: return
         dd = d * 0.001 * self.battlefield["scale"]
         print(f"Distance: {round(dd, 3)} km")
         xoo, yoo = self.deduce_loc([xo, yo])
         xee, yee = self.deduce_loc([xe, ye])
-        zoom = self.config["window-zoom"]
 
-        context.set_line_width(3 * zoom * self.config["unit-line"])
+        context.set_line_width(0.9 * self.config["unit-line"])
         context.set_source_rgba(0, 0, 0)
         context.move_to(xoo, yoo) 
         context.line_to(xee, yee)
         context.stroke()
 
-        context.set_line_width(2 * zoom * self.config["unit-line"])
+        context.set_line_width(0.6 * self.config["unit-line"])
         context.set_source_rgba(1, 1, 0.5)
         context.move_to(xoo, yoo) 
         context.line_to(xee, yee)
         context.stroke()
 
         context.set_source_rgba(0, 0, 0)
-        context.arc(xee, yee, 10 * zoom, 0, 2 * math.pi)
+        context.arc(xee, yee, 3, 0, 2 * math.pi)
         context.fill()
         context.set_source_rgba(1, 1, 0.5)
-        context.arc(xee, yee, 8 * zoom, 0, 2 * math.pi)
+        context.arc(xee, yee, 2.4, 0, 2 * math.pi)
         context.fill()
         context.set_source_rgba(0, 0, 0)
         dx = (xee - xoo) / dd
@@ -157,7 +157,7 @@ class UnitPainter:
         for di in range(int(dd)+1):
             xii = xoo + di * dx 
             yii = yoo + di * dy 
-            context.arc(xii, yii, 10 * zoom, 0, 2 * math.pi)
+            context.arc(xii, yii, 3, 0, 2 * math.pi)
             context.fill()
         
     def draw(self, context):
@@ -266,6 +266,7 @@ class UnitWindow(InfraWindow):
         key_name = Gdk.keyval_name(event.keyval)
         if key_name == "Escape":
             units_counter = {}
+            self.measurement_base = None
             self.unit_painter.measurement = None
             for uconf in self.battlefield["units"]:
                 try: units_counter[uconf["owner"]] += 1
