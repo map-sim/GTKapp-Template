@@ -1,11 +1,12 @@
 {"version": 0,
  "owners": {
-     "Turk": {"color": [0.9, 0.1, 0.1], "color2": [0.6, 0, 0]},
-     "Greek": {"color": [0.2, 0.2, 1], "color2": [0, 0, 0.6]}
+     "Turk": {"color": [0.9, 0.1, 0.1], "color2": [0.6, 0, 0], "color3": [1.0, 0.95, 0.95]},
+     "Greek": {"color": [0.2, 0.2, 1], "color2": [0, 0, 0.6], "color3": [0.85, 0.85, 1]}
  },
  "units": [
      {"owner": "Greek",
       "location": [-7500, 8700],
+      "resources": [0.5, 0.4, 0.3],
       "staff": {
 	  "number": 8,
 	  "weapons": {
@@ -26,7 +27,18 @@
 	  }
       }},
      {"owner": "Greek",
+      "location": [-7510, 8745],
+      "resources": [0.5, 0.4, 0.3],
+      "militia": {
+	  "number": 100,
+	  "weapons": {
+	      "personal": 1.0,
+	      "machine-gun-0": 0.008
+	  }
+      }},
+     {"owner": "Greek",
       "location": 449,
+      "resources": [0.5, 0.4, 0.3],
       "militia": {
 	  "number": 160,
 	  "weapons": {
@@ -36,29 +48,33 @@
       }},
      {"owner": "Turk",
       "location": 260,
+      "resources": [0.5, 0.4, 0.3],
       "staff": {
-	  "number": 1,
+	  "number": 12,
 	  "weapons": {
 	      "command": 0.8,
 	      "personal": 0.6,
 	      "machine-gun-0": 0.02
-	  }
+	  },
+	  "orders": [
+	      ["take", "fuel", {"tanker": 2, "militia": 20}, 259, 258, 257, 96, 100, 95, 431],
+	      ["take", "fuel", {"tanker": 1, "militia": 10}, 259, 258, 257, 96, 100, 95],
+	      ["supply", "fuel", {"tanker": 2, "militia": 25}, 261, 267, 268, 6],
+	      ["store", "fuel", {"tanker": 1, "militia": 35}, 261, 267, 268, [-350, 2275], 353]
+	  ]
       },
+      "tanker": {"number": 6},
+      "truck": {"number": 8},
       "militia": {
-	  "number": 100,
+	  "number": 120,
 	  "weapons": {
 	      "personal": 1.0,
 	      "machine-gun-0": 0.01
 	  }
-      },
-      "truck": {
-	  "number": 5,
-	  "weapons": {
-	      "personal": 1.0
-	  }
       }},
      {"owner": "Turk",
       "location": 279,
+      "resources": [0.5, 0.4, 0.3],
       "staff": {
 	  "number": 2,
 	  "weapons": {
@@ -67,7 +83,7 @@
 	      "machine-gun-0": 0.025
 	  },
 	  "orders": [
-	      ["transfer", {"militia": 20}, 4]
+	      ["transfer", {"militia": 20}, 5]
 	  ]
       },
       "militia": {
@@ -79,11 +95,25 @@
       }},
      {"owner": "Turk",
       "location": 271,
+      "resources": [0.5, 0.4, 0.3],
       "militia": {
 	  "number": 20,
 	  "weapons": {
 	      "personal": 1.0,
 	      "machine-gun-0": 0.01
+	  }
+      }},
+     {"owner": "Turk",
+      "location": 352,
+      "resources": [0.5, 0.4, 0.3],
+      "scouting": {"number": 5},
+      "luv": {"number": 10},
+      "staff": {
+	  "number": 4,
+	  "weapons": {
+	      "command": 0.8,
+	      "personal": 0.5,
+	      "machine-gun-0": 0.025
 	  }
       }}
  ],
