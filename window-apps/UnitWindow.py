@@ -15,6 +15,7 @@ class UnitPainter:
         self.selected_units = set()
         self.library = library
         self.config = config
+        self.measurement = None
 
     def get_unit_params(self, index, unit):
         xoffset, yoffset = self.config["window-offset"]
@@ -35,20 +36,6 @@ class UnitPainter:
         else: color = self.battlefield["owners"][unit["owner"]]["color"]
         color2 = self.battlefield["owners"][unit["owner"]]["color3"]
         return color, color2, zoom, xloc, yloc, wbox, hbox
-
-    def deduce_loc(self, pt, render=True):
-        if type(pt) is int:
-            xloc, yloc = 0, 0
-            params = self.battlefield["infrastructure"][pt]
-            if params is None: print(f"Warning! Unit {index} in null infra")
-            else: xloc, yloc = params[1:3]
-        else: xloc, yloc = pt
-        if not render: return xloc, yloc
-        xoffset, yoffset = self.config["window-offset"]
-        zoom = self.config["window-zoom"]
-        xloc, yloc = xloc * zoom, yloc * zoom
-        xloc, yloc = xloc + xoffset, yloc + yoffset
-        return xloc, yloc
 
     def verify_order_distance(self, pto, pte):
         xo, yo = self.deduce_loc(pto, False)
@@ -81,110 +68,98 @@ class UnitPainter:
         context.line_to(xloc, yloc+hbox)
         context.stroke()
 
-    def draw_move(self, context, unit, order):
+    def deduce_loc(self, pt, render=True):
+        if type(pt) is int:
+            xloc, yloc = 0, 0
+            params = self.battlefield["infrastructure"][pt]
+            if params is None: print(f"Warning! Unit {index} in null infra")
+            else: xloc, yloc = params[1:3]
+        else: xloc, yloc = pt
+        if not render: return xloc, yloc
+        xoffset, yoffset = self.config["window-offset"]
         zoom = self.config["window-zoom"]
-        xo, yo = self.deduce_loc(unit["location"])
-        pto = unit["location"]
+        xloc, yloc = xloc * zoom, yloc * zoom
+        xloc, yloc = xloc + xoffset, yloc + yoffset
+        return xloc, yloc
 
-        width = zoom * self.config["unit-line"]
+    def draw_hops(self, context, unit, nodes, last_unit=False):
         context.set_source_rgba(*self.config["order-color"])
+        zoom = self.config["window-zoom"]
+        width = zoom * self.config["unit-line"]
         context.set_line_width(width)
+        xo, yo = self.deduce_loc(unit["location"])
         context.arc(xo, yo, width, 0, 2 * math.pi)
         context.fill()
 
-        for pt in order[2:]:
-            self.verify_order_distance(pto, pt)
-            pto = pt
-
-            xe, ye  = self.deduce_loc(pt)
-            context.move_to(xo, yo) 
+        for i, node in enumerate(nodes):
+            if type(node) is int:
+                if last_unit and i == len(nodes) - 1:
+                    unit2 = self.battlefield["units"][node]
+                    xe, ye = self.deduce_loc(unit2["location"])
+                else: xe, ye = self.deduce_loc(node)
+            else: xe, ye = self.deduce_loc(node)
+            context.move_to(xo, yo)
             context.line_to(xe, ye)
             context.stroke()
 
             context.arc(xe, ye, width, 0, 2 * math.pi)
             context.fill()
             xo, yo = xe, ye
+                    
+    def draw_move(self, context, unit, order):
+        self.draw_hops(context, unit, order[2:], last_unit=False)
 
     def draw_transfer(self, context, unit, order):
-        zoom = self.config["window-zoom"]
-        xo, yo = self.deduce_loc(unit["location"])
-        unit2 = self.battlefield["units"][order[2]]
-        xe, ye = self.deduce_loc(unit2["location"])
-        self.verify_order_distance(unit["location"], unit2["location"])
-
-        width = zoom * self.config["unit-line"]
-        context.arc(xo, yo, width, 0, 2 * math.pi)
-        context.fill()
-        context.set_source_rgba(*self.config["order-color"])
-        context.set_line_width(width)
-        context.move_to(xo, yo) 
-        context.line_to(xe, ye)
-        context.stroke()
-
-        context.arc(xe, ye, width, 0, 2 * math.pi)
-        context.fill()
+        self.draw_hops(context, unit, [order[2]], last_unit=True)
 
     def draw_take(self, context, unit, order):
-        zoom = self.config["window-zoom"]
-        xo, yo = self.deduce_loc(unit["location"])
-        pto = unit["location"]
-
-        width = zoom * self.config["unit-line"]
-        context.set_source_rgba(*self.config["order-color"])
-        context.set_line_width(width)
-        context.arc(xo, yo, width, 0, 2 * math.pi)
-        context.fill()
-
-        for pt in order[3:]:
-            self.verify_order_distance(pto, pt)
-            pto = pt
-
-            xe, ye  = self.deduce_loc(pt)
-            context.move_to(xo, yo) 
-            context.line_to(xe, ye)
-            context.stroke()
-
-            context.arc(xe, ye, width, 0, 2 * math.pi)
-            context.fill()
-            xo, yo = xe, ye
+        self.draw_hops(context, unit, order[3:], last_unit=False)
 
     def draw_store(self, context, unit, order):
-        self.draw_take(context, unit, order)
+        self.draw_hops(context, unit, order[3:], last_unit=False)
 
-    def draw_supply(self, context, unit, order):
+    def draw_supply(self, context, unit, order):        
+        self.draw_hops(context, unit, order[3:], last_unit=True)
+
+    def draw_demolish(self, context, unit, order): pass
+
+    def draw_measurement(self, context):
+        if self.measurement is None: return
+        xo, yo, xe, ye = self.measurement
+        d = math.sqrt((xo-xe)**2 + (yo-ye)**2)
+        dd = d * 0.001 * self.battlefield["scale"]
+        print(f"Distance: {round(dd, 3)} km")
+        xoo, yoo = self.deduce_loc([xo, yo])
+        xee, yee = self.deduce_loc([xe, ye])
         zoom = self.config["window-zoom"]
-        xo, yo = self.deduce_loc(unit["location"])
-        pto = unit["location"]
-        
-        width = zoom * self.config["unit-line"]
-        context.set_source_rgba(*self.config["order-color"])
-        context.set_line_width(width)
-        context.arc(xo, yo, width, 0, 2 * math.pi)
-        context.fill()
 
-        for pt in order[3:-1]:
-            self.verify_order_distance(pto, pt)
-            pto = pt
-
-            xe, ye  = self.deduce_loc(pt)
-            context.move_to(xo, yo) 
-            context.line_to(xe, ye)
-            context.stroke()
-
-            context.arc(xe, ye, width, 0, 2 * math.pi)
-            context.fill()
-            xo, yo = xe, ye
-
-        unit2 = self.battlefield["units"][order[-1]]
-        self.verify_order_distance(pto, unit2["location"])
-        xe, ye = self.deduce_loc(unit2["location"])
-        context.move_to(xo, yo) 
-        context.line_to(xe, ye)
+        context.set_line_width(3 * zoom * self.config["unit-line"])
+        context.set_source_rgba(0, 0, 0)
+        context.move_to(xoo, yoo) 
+        context.line_to(xee, yee)
         context.stroke()
 
-        context.arc(xe, ye, width, 0, 2 * math.pi)
-        context.fill()
+        context.set_line_width(2 * zoom * self.config["unit-line"])
+        context.set_source_rgba(1, 1, 0.5)
+        context.move_to(xoo, yoo) 
+        context.line_to(xee, yee)
+        context.stroke()
 
+        context.set_source_rgba(0, 0, 0)
+        context.arc(xee, yee, 10 * zoom, 0, 2 * math.pi)
+        context.fill()
+        context.set_source_rgba(1, 1, 0.5)
+        context.arc(xee, yee, 8 * zoom, 0, 2 * math.pi)
+        context.fill()
+        context.set_source_rgba(0, 0, 0)
+        dx = (xee - xoo) / dd
+        dy = (yee - yoo) / dd
+        for di in range(int(dd)+1):
+            xii = xoo + di * dx 
+            yii = yoo + di * dy 
+            context.arc(xii, yii, 10 * zoom, 0, 2 * math.pi)
+            context.fill()
+        
     def draw(self, context):
         if self.object_flag == "no-units": return
         for index, unit in enumerate(self.battlefield["units"]):
@@ -201,8 +176,11 @@ class UnitPainter:
                 elif order[0] == "supply": self.draw_supply(context, unit, order)
                 elif order[0] == "store": self.draw_store(context, unit, order)
                 elif order[0] == "take": self.draw_take(context, unit, order)
+                elif order[0] == "demolish": self.draw_demolish(context, unit, order)
                 else: raise ValueError(f"not supported order: {order[0]}")
 
+        self.draw_measurement(context)
+                
 class UnitValidator:
     def __init__(self, name, conf):
         self.name = name
@@ -276,6 +254,7 @@ class UnitWindow(InfraWindow):
         InfraWindow.__init__(self, config, library, battlefield)
         for name, actor in library["actors"].items(): UnitActor(name, actor)
         for name, weapon in library["weapons"].items(): UnitWeapon(name, weapon)
+        self.measurement_base = None
 
     def init_painters(self, config, library, battlefield):
         self.painter = InfraWindow.init_painters(self, config, library, battlefield)
@@ -287,6 +266,7 @@ class UnitWindow(InfraWindow):
         key_name = Gdk.keyval_name(event.keyval)
         if key_name == "Escape":
             units_counter = {}
+            self.unit_painter.measurement = None
             for uconf in self.battlefield["units"]:
                 try: units_counter[uconf["owner"]] += 1
                 except KeyError: units_counter[uconf["owner"]] = 1
@@ -304,6 +284,13 @@ class UnitWindow(InfraWindow):
                 print("##> selection-add", new_val)
             else: print("Current mode does not support keys aA")
 
+        elif key_name == "0":
+            if self.check_mode("navigation", "modifying"):
+                print("##> show routes only distribution")
+                self.infra_painter.object_flag = "route"
+                self.unit_painter.object_flag = "no-units"
+                self.draw_content()
+            else: print("Current mode does not support key 0")
         elif key_name == "9":
             if self.unit_painter.object_flag != "no-units":
                 self.unit_painter.object_flag = "no-units"
@@ -328,6 +315,16 @@ class UnitWindow(InfraWindow):
     def on_click(self, widget, event):
         ox, oy = self.get_click_location(event)
         if event.button == 1:
+            if self.check_mode("navigation"):
+                if self.measurement_base is not None:
+                    self.unit_painter.measurement = *self.measurement_base, ox, oy
+                    self.draw_content()
+                elif self.infra_painter.selected_infra:
+                    bid = next(iter(self.infra_painter.selected_infra))
+                    ex, ey = self.battlefield["infrastructure"][bid][1:3]
+                    self.unit_painter.measurement = ex, ey, ox, oy
+                    self.draw_content()
+
             if self.check_mode("designation"):
                 selection = self.find_units(ox, oy)                
                 if self.app_controls["selection-add"]:
@@ -348,8 +345,13 @@ class UnitWindow(InfraWindow):
                     print(f"{unitid}. {owner}/{loc}/{resources}: {line}")
                 self.draw_content()
             else: InfraWindow.on_click(self, widget, event)
-        else: InfraWindow.on_click(self, widget, event)
-        
+        else:
+            if self.check_mode("navigation"):
+                if event.button == 3:
+                    self.measurement_base = ox, oy
+                    print("New measurement base:", self.measurement_base)
+            InfraWindow.on_click(self, widget, event)
+
 if __name__ == "__main__":
     example_config = {
         "version": 0,

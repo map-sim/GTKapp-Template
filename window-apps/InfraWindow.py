@@ -594,21 +594,19 @@ class InfraWindow(TerrWindow):
         elif key_name == "1":
             if self.check_mode("navigation", "selection", "modifying"):
                 print("##> show infrastructure distribution")
-                self.infra_painter.object_flag = "infra"
+                if self.infra_painter.object_flag != "infra":
+                    self.infra_painter.object_flag = "infra"
+                else: self.infra_painter.object_flag = "route"
                 self.draw_content()
             else: print("Current mode does not support key 1")
         elif key_name == "2":
             if self.check_mode("navigation", "selection", "modifying"):
                 print("##> show solid resource distribution")
-                self.infra_painter.object_flag = "solid"
+                if self.infra_painter.object_flag != "solid":
+                    self.infra_painter.object_flag = "solid"
+                else: self.infra_painter.object_flag = "liquid"
                 self.draw_content()
             else: print("Current mode does not support key 2")
-        elif key_name == "3":
-            if self.check_mode("navigation", "selection", "modifying"):
-                print("##> show liquid resource distribution")
-                self.infra_painter.object_flag = "liquid"
-                self.draw_content()
-            else: print("Current mode does not support key 3")
 
         elif key_name in "vV":
             if self.check_mode("navigation", "inserting", "editing"):
