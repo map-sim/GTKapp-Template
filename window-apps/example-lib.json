@@ -15,6 +15,7 @@
 	"water-1": {"desc": "navigable water", "color": [0.45, 0.8, 0.95]}
     },
     "infrastructure": {
+	"point":       {"desc": "reference point","color": [0.66, 0.7, 0.66], "size": [10, 10],   "bandwidth": 0,  "build": 0,   "shape": "point", "space": 0,  "volume": 0},
 	"building-0":  {"desc": "small building", "color": [0.66, 0.7, 0.66], "size": [100, 100], "bandwidth": 50, "build": 500, "shape": "box", "space": 100, "volume": 5},
 	"building-1":  {"desc": "industrials",    "color": [0.66, 0.7, 0.66], "size": [125, 125], "bandwidth": 60, "build": 800, "shape": "box", "space": 300, "volume": 100},
 	"seeport-0":   {"desc": "small see port", "color": [0.66, 0.7, 0.66], "size": [150, 150], "bandwidth": 60, "build": 550, "shape": "box", "space": 250, "volume": 100},
@@ -139,7 +140,7 @@
 	    "max-velocity": 105.0,
 	    "velocity-factors": {
 		"steppe-0": 0.17,
-		"highland-1": 0.04,
+		"highland-1": 0.06,
 		"forest-0": 0.08
 	    },
 	    "personel": 3,
@@ -222,6 +223,7 @@
 		"personal": 0.9,
 		"warmate": 0.2,
 		"drone": 0.25,
+		"mortar-0": 0.01,
 		"anti-drone": 0.02,
 		"anti-tank": 0.04
 	    }
@@ -244,7 +246,7 @@
 	    "init-weapons": {
 		"personal": 1.0,
 		"engineer": 0.06,
-		"machine-gun-0": 0.02,
+		"machine-gun-0": 0.04,
 		"machine-gun-1": 0.02,
 		"warmate": 0.2,
 		"drone": 0.25,

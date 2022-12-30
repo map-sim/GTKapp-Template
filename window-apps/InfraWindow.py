@@ -101,6 +101,15 @@ class InfraPainter:
     def draw_route_1(self, context, params, index):
         self.draw_route(context, params, index, 12)
         
+    def draw_point(self, context, params, index):
+        outs = self.get_infrastructure_params(index, "point", *params)
+        color, zoom, xloc, yloc, wbox, hbox = outs
+        if self.object_flag != "infra": return
+
+        context.set_source_rgba(*color)
+        context.set_line_width(zoom * 3)
+        self.draw_cross(context, xloc, yloc, wbox, hbox)
+
     def draw_node(self, context, name, params, index, radius_factor):
         outs = self.get_infrastructure_params(index, name, *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
@@ -116,7 +125,7 @@ class InfraPainter:
     def draw_node_0(self, context, params, index):
         self.draw_node(context, "node-0", params, index, 0.12)
     def draw_node_1(self, context, params, index):
-        self.draw_node(context, "node-1", params, index, 0.3)
+        self.draw_node(context, "node-1", params, index, 0.24)
 
     def draw_cross(self, context, xloc, yloc, dw, dh):
         context.move_to(xloc - dw, yloc)
@@ -275,6 +284,7 @@ class InfraPainter:
             elif shape == "airport-0": self.draw_airport_0(context, params, ix)
             elif shape == "node-0": self.draw_node_0(context, params, ix)
             elif shape == "node-1": self.draw_node_1(context, params, ix)
+            elif shape == "point": self.draw_point(context, params, ix)
             else: raise ValueError(f"Not supported node shape: {shape}")
         
 class InfraGraph(TerrGraph):
@@ -410,7 +420,7 @@ class InfraGraph(TerrGraph):
             if infr is None: continue
             shape  = self.library["infrastructure"][infr]["shape"]
             size  = self.library["infrastructure"][infr]["size"]
-            if shape == shape_in == "box":
+            if shape in ["box", "point"] and shape_in in ["box", "point"]:
                 coll = self.boxbox_collision(size_in, xyloc, size, (x, y))
                 if coll: return False
             elif "line" in [shape, shape_in]: continue
@@ -692,6 +702,12 @@ class InfraWindow(TerrWindow):
                 if shape != "line": print("##> cannot connect - no line!")
                 elif len(self.infra_painter.selected_infra) == 2:
                     n1, n2 = list(self.infra_painter.selected_infra)
+                    sh1 = self.battlefield["infrastructure"][n1][0]
+                    sh2 = self.battlefield["infrastructure"][n2][0]
+                    if not self.graph.is_shape_box(sh1):
+                        print("##> cannot connect - no box"); return
+                    if not self.graph.is_shape_box(sh2):
+                        print("##> cannot connect - no box"); return
                     connect, itemrow = True, (build, n1, n2, 1.0)
                     for b,j1,j2, *params in self.battlefield["infrastructure"]:
                         if b is None: continue

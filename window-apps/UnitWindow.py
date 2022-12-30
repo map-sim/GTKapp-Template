@@ -6,6 +6,7 @@ gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk
 
 from InfraWindow import InfraWindow
+from InfraWindow import InfraGraph
 from InfraWindow import load_and_run
 
 class UnitPainter:
@@ -82,32 +83,48 @@ class UnitPainter:
         xloc, yloc = xloc + xoffset, yloc + yoffset
         return xloc, yloc
 
+    def draw_line(self, context, xyo, xye, color, width,
+                  start=True, stop=True, style="solid"):
+        context.set_source_rgba(*color)
+        if style == "solid":
+            context.set_line_width(width)
+            context.move_to(*xyo)
+            context.line_to(*xye)
+            context.stroke()
+        else: raise ValueError(style)
+        if start:
+            context.arc(*xyo, width, 0, 2*math.pi)
+            context.fill()
+        if stop:
+            context.arc(*xye, width, 0, 2*math.pi)
+            context.fill()
+            
     def draw_hops(self, context, unit, nodes, last_unit=False):
-        context.set_source_rgba(*self.config["order-color"])
+        #context.set_source_rgba(*)
         zoom = self.config["window-zoom"]
         width = zoom * self.config["unit-line"]
         context.set_line_width(width)
-        xo, yo = self.deduce_loc(unit["location"])
-        context.arc(xo, yo, width, 0, 2 * math.pi)
+        xyo = self.deduce_loc(unit["location"])
+        context.arc(*xyo, width, 0, 2 * math.pi)
         context.fill()
 
         for i, node in enumerate(nodes):
             if type(node) is int:
                 if last_unit and i == len(nodes) - 1:
                     unit2 = self.battlefield["units"][node]
-                    xe, ye = self.deduce_loc(unit2["location"])
-                else: xe, ye = self.deduce_loc(node)
-            else: xe, ye = self.deduce_loc(node)
-            context.move_to(xo, yo)
-            context.line_to(xe, ye)
-            context.stroke()
+                    xye = self.deduce_loc(unit2["location"])
+                else: xye = self.deduce_loc(node)
+            else: xye = self.deduce_loc(node)
 
-            context.arc(xe, ye, width, 0, 2 * math.pi)
-            context.fill()
-            xo, yo = xe, ye
-                    
+            color = self.battlefield["owners"][unit["owner"]]["color2"]
+            self.draw_line(context, xyo, xye, color, width, start=False)
+            xyo = xye
+       
     def draw_move(self, context, unit, order):
         self.draw_hops(context, unit, order[2:], last_unit=False)
+
+    def draw_landing(self, context, unit, order):
+        self.draw_hops(context, unit, order[3:], last_unit=False)
 
     def draw_transfer(self, context, unit, order):
         self.draw_hops(context, unit, [order[2]], last_unit=True)
@@ -120,8 +137,25 @@ class UnitPainter:
 
     def draw_supply(self, context, unit, order):        
         self.draw_hops(context, unit, order[3:], last_unit=True)
+        
+    def draw_demolish(self, context, unit, order):
+        xyo = self.deduce_loc(unit["location"])
+        xye = self.deduce_loc(order[-1])
 
-    def draw_demolish(self, context, unit, order): pass
+        zoom = self.config["window-zoom"]
+        width = zoom * self.config["unit-line"]
+        color = self.battlefield["owners"][unit["owner"]]["color3"]
+        self.draw_line(context, xyo, xye, color, width)
+
+    def draw_destroy(self, context, unit, order):
+        xyo = self.deduce_loc(unit["location"])
+        unit2 = self.battlefield["units"][order[-1]]
+        xye = self.deduce_loc(unit2["location"])
+
+        zoom = self.config["window-zoom"]
+        width = zoom * self.config["unit-line"]
+        color = self.battlefield["owners"][unit["owner"]]["color3"]
+        self.draw_line(context, xyo, xye, color, width)
 
     def draw_measurement(self, context):
         if self.measurement is None: return
@@ -173,14 +207,15 @@ class UnitPainter:
             for order in unit["staff"]["orders"]:
                 if order[0] == "move": self.draw_move(context, unit, order)
                 elif order[0] == "transfer": self.draw_transfer(context, unit, order)
+                elif order[0] == "landing": self.draw_landing(context, unit, order)
                 elif order[0] == "supply": self.draw_supply(context, unit, order)
                 elif order[0] == "store": self.draw_store(context, unit, order)
                 elif order[0] == "take": self.draw_take(context, unit, order)
                 elif order[0] == "demolish": self.draw_demolish(context, unit, order)
+                elif order[0] == "destroy": self.draw_destroy(context, unit, order)
                 else: raise ValueError(f"not supported order: {order[0]}")
-
         self.draw_measurement(context)
-                
+
 class UnitValidator:
     def __init__(self, name, conf):
         self.name = name
@@ -230,6 +265,24 @@ class UnitActor(UnitValidator):
 	"capacity": dict
     }
 
+class UnitGraph(InfraGraph):
+    required_keys = ["owner", "location", "resources"]
+    
+    def __init__(self, config, library, battlefield):
+        InfraGraph.__init__(self, config, library, battlefield)
+        for name, actor in library["actors"].items(): UnitActor(name, actor)
+        for name, weapon in library["weapons"].items(): UnitWeapon(name, weapon)
+        self.validate_orders()
+
+    def check_los(self, xyo, xye):
+        print("los", xyo, xye)
+        
+    def validate_orders(self):
+        unit_list = self.battlefield["units"]
+        
+        for index, unit in enumerate(unit_list):
+            for key in self.required_keys:
+                assert key in unit, key
 
 class UnitWindow(InfraWindow):
     version = 0
@@ -252,8 +305,7 @@ class UnitWindow(InfraWindow):
 
     def __init__(self, config, library, battlefield):
         InfraWindow.__init__(self, config, library, battlefield)
-        for name, actor in library["actors"].items(): UnitActor(name, actor)
-        for name, weapon in library["weapons"].items(): UnitWeapon(name, weapon)
+        self.graph = UnitGraph(config, library, battlefield)
         self.measurement_base = None
 
     def init_painters(self, config, library, battlefield):
@@ -319,6 +371,7 @@ class UnitWindow(InfraWindow):
             if self.check_mode("navigation"):
                 if self.measurement_base is not None:
                     self.unit_painter.measurement = *self.measurement_base, ox, oy
+                    self.graph.check_los(self.measurement_base, (ox, oy))
                     self.draw_content()
                 elif self.infra_painter.selected_infra:
                     bid = next(iter(self.infra_painter.selected_infra))
@@ -362,6 +415,7 @@ if __name__ == "__main__":
         "window-offset": (500, 100),
         "selection-color": (0.8, 0, 0.8),
         "order-color": (0.1, 0.1, 0.1),
+        "order2-color": (0.9, 0.1, 0.9),
         "order-max-distance2": 45500,
         "selection-radius2": 2500,
         "plot-radius-scale": 3.5,
