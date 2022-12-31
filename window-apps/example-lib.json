@@ -15,7 +15,7 @@
 	"water-1":    {"desc": "navigable water","color": [0.45, 0.8, 0.95],"level": -2}
     },
     "infrastructure": {
-	"point":       {"desc": "reference point","color": [0.66, 0.7, 0.66], "size": [10, 10],   "bandwidth": 0,  "build": 0,   "shape": "point", "space": 0,  "volume": 0},
+	"point":       {"desc": "reference point","color": [0.66, 0.7, 0.66], "size": [10, 10],   "bandwidth": 1,  "build": 1,   "shape": "point", "space": 0, "volume": 0},
 	"building-0":  {"desc": "small building", "color": [0.66, 0.7, 0.66], "size": [100, 100], "bandwidth": 50, "build": 500, "shape": "box", "space": 100, "volume": 5},
 	"building-1":  {"desc": "industrials",    "color": [0.66, 0.7, 0.66], "size": [125, 125], "bandwidth": 60, "build": 800, "shape": "box", "space": 300, "volume": 100},
 	"seeport-0":   {"desc": "small see port", "color": [0.66, 0.7, 0.66], "size": [150, 150], "bandwidth": 60, "build": 550, "shape": "box", "space": 250, "volume": 100},
@@ -145,8 +145,8 @@
 	    },
 	    "personel": 3,
 	    "capacity": {"solid": 2.6, "liquid": 1.1},
-	    "inactive-cost": {"fuel": 0.1},
 	    "active-cost": {"fuel": 2.2},
+	    "inactive-cost": {"fuel": 0.5},
 	    "preparing-delay-factor": 0.8,
 	    "init-weapons": {
 		"command": 0.8,
@@ -168,8 +168,8 @@
 	    },
 	    "personel": 1,
 	    "capacity": {"solid": 0.7, "liquid": 0.0},
-	    "inactive-cost": {"food": 1},
 	    "active-cost": {"food": 1.2},
+	    "inactive-cost": {"food": 1},
 	    "preparing-delay-factor": 1.0,
 	    "init-weapons": {
 		"personal": 1.0,
@@ -216,8 +216,8 @@
 	    },
 	    "personel": 1,
 	    "capacity": {"solid": 0.6, "liquid": 0.0},
-	    "inactive-cost": {"food": 1},
 	    "active-cost": {"food": 1.1},
+	    "inactive-cost": {"food": 1},
 	    "preparing-delay-factor": 0.9,
 	    "init-weapons": {
 		"personal": 0.9,
@@ -240,8 +240,8 @@
 	    },
 	    "personel": 2,
 	    "capacity": {"solid": 7.6, "liquid": 1.5},
-	    "inactive-cost": {"fuel": 0.1},
 	    "active-cost": {"fuel": 3.2},
+	    "inactive-cost": {},
 	    "preparing-delay-factor": 0.4,
 	    "init-weapons": {
 		"personal": 1.0,
@@ -266,8 +266,8 @@
 	    },
 	    "personel": 2,
 	    "capacity": {"solid": 48.0, "liquid": 3.5},
-	    "inactive-cost": {"fuel": 0.1},
 	    "active-cost": {"fuel": 8.2},
+	    "inactive-cost": {},
 	    "preparing-delay-factor": 0.65,
 	    "init-weapons": {
 		"personal": 1.0
@@ -285,11 +285,32 @@
 	    },
 	    "personel": 1.5,
 	    "capacity": {"solid": 3.8, "liquid": 60.0},
-	    "inactive-cost": {"fuel": 0.1},
 	    "active-cost": {"fuel": 8.5},
+	    "inactive-cost": {},
 	    "preparing-delay-factor": 0.75,
 	    "init-weapons": {
 		"personal": 0.5
+	    }
+	},
+	"cutter": {
+	    "size": 45.5,
+	    "armor": 1.05,
+	    "aperture": 15.2,
+	    "max-velocity": 35.0,
+	    "velocity-factors": {
+		"water-0": 0.9,
+		"water-1": 1.0
+	    },
+	    "personel": 4,
+	    "capacity": {"solid": 35.5, "liquid": 10.0},
+	    "active-cost": {"fuel": 3.5},
+	    "inactive-cost": {},
+	    "preparing-delay-factor": 0.4,
+	    "allowed-infra": ["seeport-0", "seeport-1"],
+	    "init-weapons": {
+		"personal": 0.75,
+		"machine-gun-0": 0.02,
+		"machine-gun-1": 0.05
 	    }
 	}
     }

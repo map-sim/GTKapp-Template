@@ -9,6 +9,33 @@ from InfraWindow import InfraWindow
 from InfraWindow import InfraGraph
 from InfraWindow import load_and_run
 
+class UnitHandler:
+    def __init__(self, uid, config, library, battlefield):
+        assert uid < len(battlefield["units"])
+        self.battlefield = battlefield
+        self.library = library
+        self.config = config
+        self.uid = uid
+
+    def count_orders(self):
+        counter = 0
+        unit = self.battlefield["units"][self.uid]
+        for value in unit.values():
+            if type(value) is not dict: continue
+            if "orders" not in value: continue
+            counter += len(value["orders"])
+        return counter
+
+    def __str__(self):
+        unit = self.battlefield["units"][self.uid]
+        owner, loc = unit["owner"], unit["location"]
+        resources, line = unit["resources"], ""
+        for key, val in unit.items():
+            if key in self.library["actors"]:
+                line += f"{key}: {val['number']} | "
+        ol = self.count_orders()
+        return f"{self.uid}. {owner}/{loc}/{resources} (orders: {ol}): {line}"
+
 class UnitPainter:
     def __init__(self, config, library, battlefield):
         self.battlefield = battlefield
@@ -36,12 +63,6 @@ class UnitPainter:
         else: color = self.battlefield["owners"][unit["owner"]]["color"]
         color2 = self.battlefield["owners"][unit["owner"]]["color3"]
         return color, color2, zoom, xloc, yloc, wbox, hbox
-
-    def verify_order_distance(self, pto, pte):
-        xo, yo = self.deduce_loc(pto, False)
-        xe, ye = self.deduce_loc(pte, False)
-        d2 = (xo-xe)**2 + (yo-ye)**2
-        assert d2 < self.config["order-max-distance2"]
 
     def draw_unit(self, context, unit, index):
         outs = self.get_unit_params(index, unit)
@@ -246,7 +267,7 @@ class UnitWeapon(UnitValidator):
     }
 
 class UnitActor(UnitValidator):
-    optional = []
+    optional = ["allowed-infra"]
     prefix = "Actor"
     required = {
         "size": None,
@@ -292,6 +313,9 @@ class UnitGraph(InfraGraph):
         for index, unit in enumerate(unit_list):
             for key in self.required_keys:
                 assert key in unit, key
+
+        # number of orders
+        # distance of orders
 
 class UnitWindow(InfraWindow):
     version = 0
@@ -428,13 +452,8 @@ class UnitWindow(InfraWindow):
                 ex = ":" if self.unit_painter.selected_units else ": -"
                 print(f"Unit selection{ex}")
                 for unitid in self.unit_painter.selected_units:
-                    unit = self.battlefield["units"][unitid]
-                    owner, loc, line = unit["owner"], unit["location"], ""
-                    resources = unit["resources"]
-                    for key, val in unit.items():
-                        if key in self.library["actors"]:
-                            line += f"{key}: {val['number']} | "
-                    print(f"{unitid}. {owner}/{loc}/{resources}: {line}")
+                    args = unitid, self.config, self.library, self.battlefield
+                    print(UnitHandler(*args))
                 self.draw_content()
             else: InfraWindow.on_click(self, widget, event)
         else:

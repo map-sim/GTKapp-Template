@@ -104,7 +104,7 @@ class InfraPainter:
     def draw_point(self, context, params, index):
         outs = self.get_infrastructure_params(index, "point", *params)
         color, zoom, xloc, yloc, wbox, hbox = outs
-        if self.object_flag != "infra": return
+        if self.draw_rplot(context, "point", xloc, yloc, params, index): return
 
         context.set_source_rgba(*color)
         context.set_line_width(zoom * 3)
