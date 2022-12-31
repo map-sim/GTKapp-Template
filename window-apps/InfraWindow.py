@@ -546,7 +546,6 @@ class InfraWindow(TerrWindow):
                 if params[1] == ix or params[2] == ix:
                     self.battlefield["infrastructure"][i] = None, None, None
         self.infra_painter.selected_infra = set()
-        self.draw_content()
         
     def save_map(self, prefix1, prefix2):
         ex = lambda f: os.path.exists(f)
@@ -655,6 +654,7 @@ class InfraWindow(TerrWindow):
             if self.check_mode("deleting"):
                 print("##> delete")
                 self.delete_selection()
+                self.draw_content()
             else: print("Current mode does not support deleting")
 
         elif key_name in "qQ":
@@ -671,7 +671,7 @@ class InfraWindow(TerrWindow):
             else: print("Current mode does not support keys qQ")
     
         elif key_name in "aA":
-            if self.check_mode("selection", "editing", "modifying"):
+            if self.check_mode("selection", "editing", "modifying", "deleting"):
                 new_val = not self.app_controls["selection-add"]
                 self.app_controls["selection-add"] = new_val
                 self.app_controls["selection-next"] = False

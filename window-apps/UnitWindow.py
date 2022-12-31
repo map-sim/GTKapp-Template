@@ -27,8 +27,7 @@ class UnitPainter:
             if params is None: print(f"Warning! Unit {index} in null infra")
             else: xloc, yloc = params[1:3]
         else: xloc, yloc = unit["location"]
-        try: xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
-        except TypeError: xloc, yloc =  -wbox / 2, -hbox / 2
+        xloc, yloc =  xloc - wbox / 2, yloc - hbox / 2
         xloc, yloc = xloc * zoom, yloc * zoom
         xloc, yloc = xloc + xoffset, yloc + yoffset
         wbox, hbox = wbox * zoom, hbox * zoom
@@ -71,10 +70,8 @@ class UnitPainter:
 
     def deduce_loc(self, pt, render=True):
         if type(pt) is int:
-            xloc, yloc = 0, 0
             params = self.battlefield["infrastructure"][pt]
-            if params is None: print(f"Warning! Unit {index} in null infra")
-            else: xloc, yloc = params[1:3]
+            xloc, yloc = params[1:3]
         else: xloc, yloc = pt
         if not render: return xloc, yloc
         xoffset, yoffset = self.config["window-offset"]
@@ -200,20 +197,20 @@ class UnitPainter:
             self.draw_unit(context, unit, index)
 
         for unit in self.battlefield["units"]:
-            if "staff" not in unit: continue
-            if "orders" not in unit["staff"]: continue
-            if not unit["staff"]["orders"]: continue
-
-            for order in unit["staff"]["orders"]:
-                if order[0] == "move": self.draw_move(context, unit, order)
-                elif order[0] == "transfer": self.draw_transfer(context, unit, order)
-                elif order[0] == "landing": self.draw_landing(context, unit, order)
-                elif order[0] == "supply": self.draw_supply(context, unit, order)
-                elif order[0] == "store": self.draw_store(context, unit, order)
-                elif order[0] == "take": self.draw_take(context, unit, order)
-                elif order[0] == "demolish": self.draw_demolish(context, unit, order)
-                elif order[0] == "destroy": self.draw_destroy(context, unit, order)
-                else: raise ValueError(f"not supported order: {order[0]}")
+            for value in unit.values():
+                if type(value) is not dict: continue
+                if "orders" not in value: continue
+                if not value["orders"]: continue
+                for order in value["orders"]:
+                    if order[0] == "move": self.draw_move(context, unit, order)
+                    elif order[0] == "transfer": self.draw_transfer(context, unit, order)
+                    elif order[0] == "landing": self.draw_landing(context, unit, order)
+                    elif order[0] == "supply": self.draw_supply(context, unit, order)
+                    elif order[0] == "store": self.draw_store(context, unit, order)
+                    elif order[0] == "take": self.draw_take(context, unit, order)
+                    elif order[0] == "demolish": self.draw_demolish(context, unit, order)
+                    elif order[0] == "destroy": self.draw_destroy(context, unit, order)
+                    else: raise ValueError(f"not supported order: {order[0]}")
         self.draw_measurement(context)
 
 class UnitValidator:
@@ -274,12 +271,24 @@ class UnitGraph(InfraGraph):
         for name, weapon in library["weapons"].items(): UnitWeapon(name, weapon)
         self.validate_orders()
 
+    def clean_null_infra(self):
+        print("Warning!!! Not supported in UnitWindow!!!")
+        
     def check_los(self, xyo, xye):
         print("los", xyo, xye)
-        
+        r = self.config["map-resolution"]
+        dx, dy = xye[0] - xyo[0], xye[1] - xyo[1]
+        d = math.sqrt(dy**2 + dx**2)
+
+        for i in range(int(d/r)):
+            f = float(i) / d
+            xy = xyo[0] + f*dx, xyo[1] + f*dy
+            t = self.check_terrain(*xy)
+        t = self.check_terrain(*xye)
+        print(int(d/r))
+
     def validate_orders(self):
         unit_list = self.battlefield["units"]
-        
         for index, unit in enumerate(unit_list):
             for key in self.required_keys:
                 assert key in unit, key
@@ -313,6 +322,36 @@ class UnitWindow(InfraWindow):
         self.unit_painter = UnitPainter(config, library, battlefield)
         self.painter.append(self.unit_painter)
         return self.painter
+
+    def delete_selection(self):
+        if not self.infra_painter.selected_infra:
+            print("No infra selected..."); return
+        for unit in self.battlefield["units"]:
+            if type(unit["location"]) is int:
+                if unit["location"] in self.infra_painter.selected_infra:
+                    params = self.battlefield["infrastructure"][unit["location"]]
+                    unit["location"] = [params[1], params[2]]
+        for unit in self.battlefield["units"]:
+            for value in unit.values():
+                if type(value) is not dict: continue
+                if "orders" not in value: continue
+                if not value["orders"]: continue
+                torm = set()
+                for ix, order in enumerate(value["orders"]):
+                    for bid in self.infra_painter.selected_infra:
+                        if order[0] == "transfer": continue
+                        elif order[0] == "move": nodes = list(order[2:])
+                        elif order[0] == "landing": nodes = list(order[3:])
+                        elif order[0] == "supply": nodes = list(order[3:-1])
+                        elif order[0] == "store": nodes = list(order[3:])
+                        elif order[0] == "take": nodes = list(order[3:])
+                        elif order[0] == "demolish": nodes = [order[-1]]
+                        elif order[0] == "destroy": nodes = [order[-1]]
+                        else: raise ValueError(order[0])
+                        if bid in nodes: torm.add(ix)
+                for ix in list(reversed(sorted(torm))):
+                    del value["orders"][ix]
+        InfraWindow.delete_selection(self)
 
     def on_press(self, widget, event):
         key_name = Gdk.keyval_name(event.keyval)
@@ -357,8 +396,7 @@ class UnitWindow(InfraWindow):
         for ix, unit in enumerate(unit_list):
             if type(unit["location"]) is int:
                 params = self.battlefield["infrastructure"][unit["location"]]
-                if params is None: print(f"Warning! Unit {ix} in null infra")
-                else: xo, yo = params[1:3]
+                xo, yo = params[1:3]
             else: xo, yo = unit["location"]
             d2 = (xloc-xo)**2 + (yloc-yo)**2
             if d2 < self.config["selection-radius2"]:
@@ -414,8 +452,6 @@ if __name__ == "__main__":
         "window-size": (1800, 820),
         "window-offset": (500, 100),
         "selection-color": (0.8, 0, 0.8),
-        "order-color": (0.1, 0.1, 0.1),
-        "order2-color": (0.9, 0.1, 0.9),
         "order-max-distance2": 45500,
         "selection-radius2": 2500,
         "plot-radius-scale": 3.5,
@@ -423,6 +459,7 @@ if __name__ == "__main__":
         "move-editing": 2,
         "person-space": 2,
         "unit-size": (50, 35),
+        "map-resolution": 3.333,
         "unit-line": 6
     }
     load_and_run(example_config, UnitWindow)
