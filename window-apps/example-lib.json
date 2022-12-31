@@ -123,8 +123,8 @@
 	},
 	"cannon-0": {
 	    "size": 2.6,
-	    "view-range": 5.5,
-	    "fire-range": 5,
+	    "view-range": 6.5,
+	    "fire-range": 8,
 	    "fire-power": 2.2,
 	    "accuracy": 0.35,
 	    "cost": {"ammu": 2.1},
