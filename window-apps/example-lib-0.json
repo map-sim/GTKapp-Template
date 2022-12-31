@@ -300,6 +300,15 @@
       "volume": 0
     }
   },
+  "orders": {
+    "move": {},
+    "landing": {},
+    "supply": {},
+    "store": {},
+    "take": {},
+    "demolish": {},
+    "destroy": {}
+  },
   "weapons": {
     "command": {
       "size": 1.2,
@@ -430,6 +439,21 @@
         "indirect-fight"
       ],
       "preparing-delay": 15
+    },
+    "cannon-0": {
+      "size": 2.6,
+      "view-range": 5.5,
+      "fire-range": 5,
+      "fire-power": 2.2,
+      "accuracy": 0.35,
+      "cost": {
+        "ammu": 2.1
+      },
+      "abilities": [
+        "reactive-fight",
+        "direct-fight"
+      ],
+      "preparing-delay": 25
     },
     "anti-tank": {
       "size": 0.5,
@@ -692,7 +716,8 @@
       "init-weapons": {
         "personal": 0.75,
         "machine-gun-0": 0.02,
-        "machine-gun-1": 0.05
+        "machine-gun-1": 0.05,
+        "cannon-0": 0.01
       }
     }
   }
