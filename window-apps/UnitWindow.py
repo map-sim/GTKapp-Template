@@ -29,6 +29,9 @@ class UnitHandler:
     def __str__(self):
         unit = self.battlefield["units"][self.uid]
         owner, loc = unit["owner"], unit["location"]
+        if type(loc) is int:
+            shape = self.battlefield["infrastructure"][loc][0]
+            loc = f"{loc}({shape})"
         resources, line = unit["resources"], ""
         for key, val in unit.items():
             if key in self.library["actors"]:
@@ -36,6 +39,30 @@ class UnitHandler:
         ol = self.count_orders()
         return f"{self.uid}. {owner}/{loc}/{resources} (orders: {ol}): {line}"
 
+    def update_infra_nodes(self, changelog):
+        unit = self.battlefield["units"][self.uid]
+        for value in unit.values():
+            if type(value) is not dict: continue
+            if "orders" not in value: continue
+            if not value["orders"]: continue
+            for order in value["orders"]:
+                if order[0] == "transfer": continue
+                elif order[0] == "move": gix = range(2, len(order))
+                elif order[0] == "landing": gix = range(3, len(order))
+                elif order[0] == "supply": gix = range(3, len(order)-1)
+                elif order[0] == "store": gix = range(3, len(order))
+                elif order[0] == "take": gix = range(3, len(order))
+                elif order[0] == "demolish": gix = [len(order)-1]
+                elif order[0] == "destroy": gix = [len(order)-1]
+                else: raise ValueError(order[0])
+                for ix in gix:
+                    if order[ix] not in changelog: continue
+                    order[ix] = changelog[order[ix]]
+
+        if type(unit["location"]) is not int: return
+        if unit["location"] not in changelog: return
+        unit["location"] = changelog[unit["location"]]
+        
 class UnitPainter:
     def __init__(self, config, library, battlefield):
         self.battlefield = battlefield
@@ -293,8 +320,18 @@ class UnitGraph(InfraGraph):
         self.validate_orders()
 
     def clean_null_infra(self):
-        print("Warning!!! Not supported in UnitWindow!!!")
-        
+        torm_counter, changelog = 0, {}
+        infra_list = self.battlefield["infrastructure"]
+        for ix, (shape, *params) in enumerate(infra_list):
+            if shape is None:
+                # changelog[ix] = None
+                torm_counter += 1
+            else: changelog[ix] = ix - torm_counter
+        for ix in range(len(self.battlefield["units"])):
+            uh = UnitHandler(ix, self.config, self.library, self.battlefield)
+            uh.update_infra_nodes(changelog)
+        InfraGraph.clean_null_infra(self)
+
     def check_los(self, xyo, xye):
         print("los", xyo, xye)
         r = self.config["map-resolution"]
