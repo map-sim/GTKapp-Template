@@ -18,13 +18,9 @@ class UnitHandler:
         self.uid = uid
 
     def count_orders(self):
-        counter = 0
         unit = self.battlefield["units"][self.uid]
-        for value in unit.values():
-            if type(value) is not dict: continue
-            if "orders" not in value: continue
-            counter += len(value["orders"])
-        return counter
+        if "orders" not in unit: return 0
+        return len(unit["orders"])
 
     def __str__(self):
         unit = self.battlefield["units"][self.uid]
@@ -41,11 +37,8 @@ class UnitHandler:
 
     def update_infra_nodes(self, changelog):
         unit = self.battlefield["units"][self.uid]
-        for value in unit.values():
-            if type(value) is not dict: continue
-            if "orders" not in value: continue
-            if not value["orders"]: continue
-            for order in value["orders"]:
+        if "orders" in unit:            
+            for order in unit["orders"]:
                 if order[0] == "transfer": continue
                 elif order[0] == "move": gix = range(2, len(order))
                 elif order[0] == "landing": gix = range(3, len(order))
@@ -245,20 +238,17 @@ class UnitPainter:
             self.draw_unit(context, unit, index)
 
         for unit in self.battlefield["units"]:
-            for value in unit.values():
-                if type(value) is not dict: continue
-                if "orders" not in value: continue
-                if not value["orders"]: continue
-                for order in value["orders"]:
-                    if order[0] == "move": self.draw_move(context, unit, order)
-                    elif order[0] == "transfer": self.draw_transfer(context, unit, order)
-                    elif order[0] == "landing": self.draw_landing(context, unit, order)
-                    elif order[0] == "supply": self.draw_supply(context, unit, order)
-                    elif order[0] == "store": self.draw_store(context, unit, order)
-                    elif order[0] == "take": self.draw_take(context, unit, order)
-                    elif order[0] == "demolish": self.draw_demolish(context, unit, order)
-                    elif order[0] == "destroy": self.draw_destroy(context, unit, order)
-                    else: raise ValueError(f"not supported order: {order[0]}")
+            if "orders" not in unit: continue 
+            for order in unit["orders"]:
+                if order[0] == "move": self.draw_move(context, unit, order)
+                elif order[0] == "transfer": self.draw_transfer(context, unit, order)
+                elif order[0] == "landing": self.draw_landing(context, unit, order)
+                elif order[0] == "supply": self.draw_supply(context, unit, order)
+                elif order[0] == "store": self.draw_store(context, unit, order)
+                elif order[0] == "take": self.draw_take(context, unit, order)
+                elif order[0] == "demolish": self.draw_demolish(context, unit, order)
+                elif order[0] == "destroy": self.draw_destroy(context, unit, order)
+                else: raise ValueError(f"not supported order: {order[0]}")
         self.draw_measurement(context)
 
 class UnitValidator:
@@ -393,25 +383,22 @@ class UnitWindow(InfraWindow):
                     params = self.battlefield["infrastructure"][unit["location"]]
                     unit["location"] = [params[1], params[2]]
         for unit in self.battlefield["units"]:
-            for value in unit.values():
-                if type(value) is not dict: continue
-                if "orders" not in value: continue
-                if not value["orders"]: continue
-                torm = set()
-                for ix, order in enumerate(value["orders"]):
-                    for bid in self.infra_painter.selected_infra:
-                        if order[0] == "transfer": continue
-                        elif order[0] == "move": nodes = list(order[2:])
-                        elif order[0] == "landing": nodes = list(order[3:])
-                        elif order[0] == "supply": nodes = list(order[3:-1])
-                        elif order[0] == "store": nodes = list(order[3:])
-                        elif order[0] == "take": nodes = list(order[3:])
-                        elif order[0] == "demolish": nodes = [order[-1]]
-                        elif order[0] == "destroy": nodes = [order[-1]]
-                        else: raise ValueError(order[0])
-                        if bid in nodes: torm.add(ix)
-                for ix in list(reversed(sorted(torm))):
-                    del value["orders"][ix]
+            if "orders" not in unit: continue
+            torm = set()
+            for ix, order in enumerate(unit["orders"]):
+                for bid in self.infra_painter.selected_infra:
+                    if order[0] == "transfer": continue
+                    elif order[0] == "move": nodes = list(order[2:])
+                    elif order[0] == "landing": nodes = list(order[3:])
+                    elif order[0] == "supply": nodes = list(order[3:-1])
+                    elif order[0] == "store": nodes = list(order[3:])
+                    elif order[0] == "take": nodes = list(order[3:])
+                    elif order[0] == "demolish": nodes = [order[-1]]
+                    elif order[0] == "destroy": nodes = [order[-1]]
+                    else: raise ValueError(order[0])
+                    if bid in nodes: torm.add(ix)
+            for ix in list(reversed(sorted(torm))):
+                del unit["orders"][ix]
         InfraWindow.delete_selection(self)
 
     def on_press(self, widget, event):

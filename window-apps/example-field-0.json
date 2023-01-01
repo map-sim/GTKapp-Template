@@ -50,37 +50,33 @@
         0.3
       ],
       "staff": {
-        "number": 8,
-        "orders": [
-          [
-            "move",
-            {
-              "staff": 4,
-              "militia": 60
-            },
-            1344,
-            467,
-            469,
-            490
-          ],
-          [
-            "move",
-            {
-              "staff": 2,
-              "militia": 40
-            },
-            466,
-            452
-          ]
-        ]
+        "number": 8
       },
       "militia": {
-        "number": 100,
-        "weapons": {
-          "personal": 1,
-          "machine-gun-0": 0.008
-        }
-      }
+        "number": 100
+      },
+      "orders": [
+        [
+          "move",
+          {
+            "staff": 4,
+            "militia": 60
+          },
+          1344,
+          467,
+          469,
+          490
+        ],
+        [
+          "move",
+          {
+            "staff": 2,
+            "militia": 40
+          },
+          466,
+          452
+        ]
+      ]
     },
     {
       "owner": "Greek",
@@ -131,73 +127,10 @@
           "command": 0.8,
           "personal": 0.6,
           "machine-gun-0": 0.02
-        },
-        "orders": [
-          [
-            "take",
-            "fuel",
-            {
-              "tanker": 1,
-              "militia": 10
-            },
-            259,
-            258,
-            257,
-            96,
-            98,
-            1087,
-            94,
-            111,
-            110,
-            109,
-            108,
-            107,
-            106,
-            105,
-            81,
-            1339
-          ],
-          [
-            "take",
-            "fuel",
-            {
-              "tanker": 2,
-              "militia": 20
-            },
-            259,
-            258,
-            257,
-            96,
-            100,
-            95,
-            431
-          ],
-          [
-            "store",
-            "fuel",
-            {
-              "tanker": 1,
-              "militia": 35
-            },
-            261,
-            267,
-            268,
-            1345,
-            353
-          ],
-          [
-            "supply",
-            "fuel",
-            {
-              "tanker": 2,
-              "militia": 25
-            },
-            261,
-            267,
-            268,
-            6
-          ]
-        ]
+        }
+      },
+      "militia": {
+        "number": 120
       },
       "tanker": {
         "number": 6
@@ -205,13 +138,72 @@
       "truck": {
         "number": 8
       },
-      "militia": {
-        "number": 120,
-        "weapons": {
-          "personal": 1,
-          "machine-gun-0": 0.01
-        }
-      }
+      "orders": [
+        [
+          "take",
+          "fuel",
+          {
+            "tanker": 1,
+            "militia": 10
+          },
+          259,
+          258,
+          257,
+          96,
+          98,
+          1087,
+          94,
+          111,
+          110,
+          109,
+          108,
+          107,
+          106,
+          105,
+          81,
+          1339
+        ],
+        [
+          "take",
+          "fuel",
+          {
+            "tanker": 2,
+            "militia": 20
+          },
+          259,
+          258,
+          257,
+          96,
+          100,
+          95,
+          431
+        ],
+        [
+          "store",
+          "fuel",
+          {
+            "tanker": 1,
+            "militia": 35
+          },
+          261,
+          267,
+          268,
+          1345,
+          353
+        ],
+        [
+          "supply",
+          "fuel",
+          {
+            "tanker": 2,
+            "militia": 25
+          },
+          261,
+          267,
+          268,
+          6
+        ]
+      ]
     },
     {
       "owner": "Turk",
@@ -222,29 +214,20 @@
         0.3
       ],
       "staff": {
-        "number": 2,
-        "weapons": {
-          "command": 0.8,
-          "personal": 0.5,
-          "machine-gun-0": 0.025
-        },
-        "orders": [
-          [
-            "transfer",
-            {
-              "militia": 20
-            },
-            5
-          ]
-        ]
+        "number": 2
       },
       "militia": {
-        "number": 50,
-        "weapons": {
-          "personal": 1,
-          "machine-gun-0": 0.01
-        }
-      }
+        "number": 50
+      },
+      "orders": [
+        [
+          "transfer",
+          {
+            "militia": 20
+          },
+          5
+        ]
+      ]
     },
     {
       "owner": "Turk",
@@ -277,31 +260,26 @@
         "number": 10
       },
       "staff": {
-        "number": 4,
-        "weapons": {
-          "command": 0.8,
-          "personal": 0.5,
-          "machine-gun-0": 0.025
-        },
-        "orders": [
-          [
-            "destroy",
-            "luv",
-            10,
-            "machine-gun-1",
-            "direct-fight",
-            7
-          ],
-          [
-            "destroy",
-            "luv",
-            10,
-            "machine-gun-0",
-            "direct-fight",
-            7
-          ]
+        "number": 4
+      },
+      "orders": [
+        [
+          "destroy",
+          "luv",
+          10,
+          "machine-gun-1",
+          "direct-fight",
+          7
+        ],
+        [
+          "destroy",
+          "luv",
+          10,
+          "machine-gun-0",
+          "direct-fight",
+          7
         ]
-      }
+      ]
     },
     {
       "owner": "Greek",
@@ -318,39 +296,34 @@
         "number": 5
       },
       "staff": {
-        "number": 2,
-        "weapons": {
-          "command": 0.8,
-          "personal": 0.5,
-          "machine-gun-0": 0.025
-        },
-        "orders": [
-          [
-            "demolish",
-            "scouting",
-            2,
-            "mortar-0",
-            "indirect-fight",
-            353
-          ],
-          [
-            "demolish",
-            "scouting",
-            2,
-            "mortar-0",
-            "indirect-fight",
-            373
-          ],
-          [
-            "demolish",
-            "scouting",
-            1,
-            "mortar-0",
-            "indirect-fight",
-            374
-          ]
+        "number": 2
+      },
+      "orders": [
+        [
+          "demolish",
+          "scouting",
+          2,
+          "mortar-0",
+          "indirect-fight",
+          353
+        ],
+        [
+          "demolish",
+          "scouting",
+          2,
+          "mortar-0",
+          "indirect-fight",
+          373
+        ],
+        [
+          "demolish",
+          "scouting",
+          1,
+          "mortar-0",
+          "indirect-fight",
+          374
         ]
-      }
+      ]
     },
     {
       "owner": "Greek",
@@ -360,44 +333,43 @@
         0.4,
         0.3
       ],
+      "staff": {
+        "number": 5
+      },
       "infantry": {
         "number": 100
       },
       "luv": {
         "number": 10
       },
-      "staff": {
-        "number": 5,
-        "orders": [
-          [
-            "landing",
-            {
-              "staff": 2,
-              "luv": 10
-            },
-            {
-              "staff": 2,
-              "infantry": 60
-            },
-            578,
-            579,
-            580,
-            581,
-            582,
-            708,
-            709,
-            710,
-            713,
-            714,
-            715,
-            716,
-            719,
-            1346,
-            1347,
-            720
-          ]
+      "orders": [
+        [
+          "landing",
+          {
+            "luv": 10
+          },
+          {
+            "staff": 2,
+            "infantry": 60
+          },
+          578,
+          579,
+          580,
+          581,
+          582,
+          708,
+          709,
+          710,
+          713,
+          714,
+          715,
+          716,
+          719,
+          1346,
+          1347,
+          720
         ]
-      }
+      ]
     },
     {
       "owner": "Greek",
@@ -407,36 +379,35 @@
         0.4,
         0.3
       ],
-      "cutter": {
-        "number": 3
+      "staff": {
+        "number": 2
       },
       "militia": {
         "number": 40
       },
-      "staff": {
-        "number": 2,
-        "orders": [
-          [
-            "landing",
-            {
-              "staff": 1,
-              "cutter": 2,
-              "militia": 10
-            },
-            {
-              "staff": 1,
-              "militia": 20
-            },
-            1348,
-            1349,
-            1350,
-            1351,
-            1352,
-            1353,
-            999
-          ]
+      "cutter": {
+        "number": 3
+      },
+      "orders": [
+        [
+          "landing",
+          {
+            "cutter": 2,
+            "militia": 10
+          },
+          {
+            "staff": 1,
+            "militia": 20
+          },
+          1348,
+          1349,
+          1350,
+          1351,
+          1352,
+          1353,
+          999
         ]
-      }
+      ]
     }
   ],
   "infrastructure": [
