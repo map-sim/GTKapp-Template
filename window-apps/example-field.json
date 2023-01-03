@@ -88,9 +88,8 @@
       "scouting": {"number": 5},
       "staff": {"number": 2},
       "orders": [
-	  ["demolish", "scouting", 2, "mortar-0", "indirect-fight", 353],
-	  ["demolish", "scouting", 2, "mortar-0", "indirect-fight", 373],
-	  ["demolish", "scouting", 1, "mortar-0", "indirect-fight", 374]
+	  ["demolish", "scouting", 1, "mortar-0", "indirect-fight", 852],
+	  ["demolish", "scouting", 1, "mortar-0", "indirect-fight", 853]
       ]},
      {"owner": "Greek",
       "location": 457,

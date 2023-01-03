@@ -157,7 +157,26 @@ class UnitPainter:
             color = self.battlefield["owners"][unit["owner"]]["color2"]
             self.draw_line(context, xyo, xye, color, width, start=False)
             xyo = xye
-       
+
+    def draw_arrow(self, context, xyo, xye, color, width):
+        zoom = self.config["window-zoom"]
+        dx, dy = xye[0] - xyo[0], xye[1] - xyo[1]
+        arrow_angle = math.atan(dy/dx) #- math.pi
+        if dx < 0: arrow_angle -= math.pi
+        arrowhead_angle = math.pi/6
+        arrowhead_length = 30 * zoom
+        arrow_length = 0 * zoom
+        
+        context.move_to(*xye)
+        context.rel_line_to(arrow_length * math.cos(arrow_angle), arrow_length * math.sin(arrow_angle))
+        context.rel_move_to(-arrowhead_length * math.cos(arrow_angle - arrowhead_angle), -arrowhead_length * math.sin(arrow_angle - arrowhead_angle))
+        context.rel_line_to(arrowhead_length * math.cos(arrow_angle - arrowhead_angle), arrowhead_length * math.sin(arrow_angle - arrowhead_angle))
+        context.rel_line_to(-arrowhead_length * math.cos(arrow_angle + arrowhead_angle), -arrowhead_length * math.sin(arrow_angle + arrowhead_angle))
+
+        context.set_source_rgb(*color)
+        context.set_line_width(width)
+        context.stroke()
+        
     def draw_move(self, context, unit, order):
         self.draw_hops(context, unit, order[2:], last_unit=False)
 
@@ -183,8 +202,12 @@ class UnitPainter:
         zoom = self.config["window-zoom"]
         width = zoom * self.config["unit-line"]
         color = self.battlefield["owners"][unit["owner"]]["color3"]
-        self.draw_line(context, xyo, xye, color, width)
-
+        self.draw_line(context, xyo, xye, color, width, stop=False)        
+        self.draw_arrow(context, xyo, xye, color, width)
+        color2 = self.battlefield["owners"][unit["owner"]]["color"]
+        self.draw_line(context, xyo, xye, color2, width*0.5, stop=False)
+        self.draw_arrow(context, xyo, xye, color2, width*0.5)
+        
     def draw_destroy(self, context, unit, order):
         xyo = self.deduce_loc(unit["location"])
         unit2 = self.battlefield["units"][order[-1]]
@@ -193,7 +216,11 @@ class UnitPainter:
         zoom = self.config["window-zoom"]
         width = zoom * self.config["unit-line"]
         color = self.battlefield["owners"][unit["owner"]]["color3"]
-        self.draw_line(context, xyo, xye, color, width)
+        self.draw_line(context, xyo, xye, color, width, stop=False)
+        self.draw_arrow(context, xyo, xye, color, width)
+        color2 = self.battlefield["owners"][unit["owner"]]["color"]
+        self.draw_line(context, xyo, xye, color2, width*0.5, stop=False)
+        self.draw_arrow(context, xyo, xye, color2, width*0.5)
 
     def draw_measurement(self, context):
         if self.measurement is None: return
@@ -231,24 +258,30 @@ class UnitPainter:
             yii = yoo + di * dy 
             context.arc(xii, yii, 3, 0, 2 * math.pi)
             context.fill()
-        
+
+    def draw_unit_orders(self, context, unit):
+        if "orders" not in unit: return 
+        for order in unit["orders"]:
+            if order[0] == "move": self.draw_move(context, unit, order)
+            elif order[0] == "transfer": self.draw_transfer(context, unit, order)
+            elif order[0] == "landing": self.draw_landing(context, unit, order)
+            elif order[0] == "supply": self.draw_supply(context, unit, order)
+            elif order[0] == "store": self.draw_store(context, unit, order)
+            elif order[0] == "take": self.draw_take(context, unit, order)
+            elif order[0] == "demolish": self.draw_demolish(context, unit, order)
+            elif order[0] == "destroy": self.draw_destroy(context, unit, order)
+            else: raise ValueError(f"not supported order: {order[0]}")
+            
     def draw(self, context):
         if self.object_flag == "no-units": return
         for index, unit in enumerate(self.battlefield["units"]):
             self.draw_unit(context, unit, index)
 
         for unit in self.battlefield["units"]:
-            if "orders" not in unit: continue 
-            for order in unit["orders"]:
-                if order[0] == "move": self.draw_move(context, unit, order)
-                elif order[0] == "transfer": self.draw_transfer(context, unit, order)
-                elif order[0] == "landing": self.draw_landing(context, unit, order)
-                elif order[0] == "supply": self.draw_supply(context, unit, order)
-                elif order[0] == "store": self.draw_store(context, unit, order)
-                elif order[0] == "take": self.draw_take(context, unit, order)
-                elif order[0] == "demolish": self.draw_demolish(context, unit, order)
-                elif order[0] == "destroy": self.draw_destroy(context, unit, order)
-                else: raise ValueError(f"not supported order: {order[0]}")
+            self.draw_unit_orders(context, unit)
+        for index in self.selected_units:
+            unit = self.battlefield["units"][index]
+            self.draw_unit_orders(context, unit)            
         self.draw_measurement(context)
 
 class UnitValidator:
