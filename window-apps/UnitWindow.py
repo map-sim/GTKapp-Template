@@ -8,54 +8,9 @@ from gi.repository import Gdk
 from InfraWindow import InfraWindow
 from InfraWindow import InfraGraph
 from InfraWindow import load_and_run
+from UnitHandler import UnitHandler
 
-class UnitHandler:
-    def __init__(self, uid, config, library, battlefield):
-        assert uid < len(battlefield["units"])
-        self.battlefield = battlefield
-        self.library = library
-        self.config = config
-        self.uid = uid
 
-    def count_orders(self):
-        unit = self.battlefield["units"][self.uid]
-        if "orders" not in unit: return 0
-        return len(unit["orders"])
-
-    def __str__(self):
-        unit = self.battlefield["units"][self.uid]
-        owner, loc = unit["owner"], unit["location"]
-        if type(loc) is int:
-            shape = self.battlefield["infrastructure"][loc][0]
-            loc = f"{loc}({shape})"
-        resources, line = unit["resources"], ""
-        for key, val in unit.items():
-            if key in self.library["actors"]:
-                line += f"{key}: {val['number']} | "
-        ol = self.count_orders()
-        return f"{self.uid}. {owner}/{loc}/{resources} (orders: {ol}): {line}"
-
-    def update_infra_nodes(self, changelog):
-        unit = self.battlefield["units"][self.uid]
-        if "orders" in unit:            
-            for order in unit["orders"]:
-                if order[0] == "transfer": continue
-                elif order[0] == "move": gix = range(2, len(order))
-                elif order[0] == "landing": gix = range(3, len(order))
-                elif order[0] == "supply": gix = range(3, len(order)-1)
-                elif order[0] == "store": gix = range(3, len(order))
-                elif order[0] == "take": gix = range(3, len(order))
-                elif order[0] == "demolish": gix = [len(order)-1]
-                elif order[0] == "destroy": gix = [len(order)-1]
-                else: raise ValueError(order[0])
-                for ix in gix:
-                    if order[ix] not in changelog: continue
-                    order[ix] = changelog[order[ix]]
-
-        if type(unit["location"]) is not int: return
-        if unit["location"] not in changelog: return
-        unit["location"] = changelog[unit["location"]]
-        
 class UnitPainter:
     def __init__(self, config, library, battlefield):
         self.battlefield = battlefield
@@ -99,7 +54,7 @@ class UnitPainter:
         context.line_to(xloc, yloc+hbox)
         context.stroke()
 
-        context.set_line_width(zoom * self.config["unit-line"])
+        context.set_line_width(zoom * 0.5 * self.config["unit-line"])
         context.set_source_rgba(*color)
 
         context.rectangle(xloc, yloc, wbox, hbox)
@@ -138,7 +93,6 @@ class UnitPainter:
             context.fill()
             
     def draw_hops(self, context, unit, nodes, last_unit=False):
-        #context.set_source_rgba(*)
         zoom = self.config["window-zoom"]
         width = zoom * self.config["unit-line"]
         context.set_line_width(width)
@@ -271,17 +225,29 @@ class UnitPainter:
             elif order[0] == "demolish": self.draw_demolish(context, unit, order)
             elif order[0] == "destroy": self.draw_destroy(context, unit, order)
             else: raise ValueError(f"not supported order: {order[0]}")
+
+    def draw_unit_ranges(self, context, unit):
+        crew_keys = self.library["crew"].keys()
+        xyo = self.deduce_loc(unit["location"])
+
+        #for crew in crew_keys:
             
+        
+        print(unit)
+        print("######", xyo)
+
     def draw(self, context):
         if self.object_flag == "no-units": return
         for index, unit in enumerate(self.battlefield["units"]):
             self.draw_unit(context, unit, index)
-
         for unit in self.battlefield["units"]:
-            self.draw_unit_orders(context, unit)
-        for index in self.selected_units:
-            unit = self.battlefield["units"][index]
-            self.draw_unit_orders(context, unit)            
+            self.draw_unit_ranges(context, unit)
+        if self.object_flag != "no-orders":
+            for unit in self.battlefield["units"]:
+                self.draw_unit_orders(context, unit)
+            for index in self.selected_units:
+                unit = self.battlefield["units"][index]
+                self.draw_unit_orders(context, unit)            
         self.draw_measurement(context)
 
 class UnitValidator:
@@ -306,12 +272,13 @@ class UnitWeapon(UnitValidator):
     optional = ["construction", "destruction"]    
     prefix = "Weapon"
     required = {
-        "size": None,
-	"view-range": None,
-	"fire-range": None,
+        "space-need": None,
+        "view-range": None,
+        "view-accuracy": None,
+        "fire-range": None,
 	"fire-power": None,
-	"preparing-delay": None,
-	"accuracy": None,
+	"fire-accuracy": None,
+	"prep-delay": None,
 	"abilities": list,
 	"cost": dict
     }
@@ -330,7 +297,7 @@ class UnitActor(UnitValidator):
 	"inactive-cost": dict,
 	"active-cost": dict,
 	"init-weapons": dict,
-	"capacity": dict
+	 "capacity": dict
     }
 
 class UnitGraph(InfraGraph):
@@ -347,7 +314,6 @@ class UnitGraph(InfraGraph):
         infra_list = self.battlefield["infrastructure"]
         for ix, (shape, *params) in enumerate(infra_list):
             if shape is None:
-                # changelog[ix] = None
                 torm_counter += 1
             else: changelog[ix] = ix - torm_counter
         for ix in range(len(self.battlefield["units"])):
@@ -407,7 +373,7 @@ class UnitWindow(InfraWindow):
         self.painter.append(self.unit_painter)
         return self.painter
 
-    def delete_selection(self):
+    def delete_selection(self): # infrastructure removing
         if not self.infra_painter.selected_infra:
             print("No infra selected..."); return
         for unit in self.battlefield["units"]:
@@ -415,20 +381,13 @@ class UnitWindow(InfraWindow):
                 if unit["location"] in self.infra_painter.selected_infra:
                     params = self.battlefield["infrastructure"][unit["location"]]
                     unit["location"] = [params[1], params[2]]
-        for unit in self.battlefield["units"]:
+        for uid, unit in enumerate(self.battlefield["units"]):
             if "orders" not in unit: continue
-            torm = set()
+            args = uid, self.config, self.library, self.battlefield
+            torm, uh = set(), UnitHandler(*args)
             for ix, order in enumerate(unit["orders"]):
                 for bid in self.infra_painter.selected_infra:
-                    if order[0] == "transfer": continue
-                    elif order[0] == "move": nodes = list(order[2:])
-                    elif order[0] == "landing": nodes = list(order[3:])
-                    elif order[0] == "supply": nodes = list(order[3:-1])
-                    elif order[0] == "store": nodes = list(order[3:])
-                    elif order[0] == "take": nodes = list(order[3:])
-                    elif order[0] == "demolish": nodes = [order[-1]]
-                    elif order[0] == "destroy": nodes = [order[-1]]
-                    else: raise ValueError(order[0])
+                    nodes = uh.get_order_nodes(ix)
                     if bid in nodes: torm.add(ix)
             for ix in list(reversed(sorted(torm))):
                 del unit["orders"][ix]
@@ -467,6 +426,11 @@ class UnitWindow(InfraWindow):
         elif key_name == "9":
             if self.unit_painter.object_flag != "no-units":
                 self.unit_painter.object_flag = "no-units"
+            else: self.unit_painter.object_flag = "units"
+            self.draw_content()
+        elif key_name == "8":
+            if self.unit_painter.object_flag != "no-orders":
+                self.unit_painter.object_flag = "no-orders"
             else: self.unit_painter.object_flag = "units"
             self.draw_content()
         else: InfraWindow.on_press(self, widget, event)
@@ -527,7 +491,7 @@ if __name__ == "__main__":
         "window-zoom": 0.0366,
         "window-size": (1800, 820),
         "window-offset": (500, 100),
-        "selection-color": (0.8, 0, 0.8),
+        "selection-color": (0.95, 0.66, 0.95),
         "order-max-distance2": 45500,
         "selection-radius2": 2500,
         "plot-radius-scale": 3.5,
